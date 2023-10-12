@@ -1,10 +1,11 @@
+local Util = require("tvl.util")
+
+local map = Util.map
+
 local opts = { noremap = true, silent = true }
 
--- Shorten function name
-local keymap = vim.api.nvim_set_keymap
-
 --Remap space as leader key
--- keymap("", "<Space>", "<Nop>", opts)
+-- map("", "<Space>", "<Nop>", opts)
 -- vim.g.mapleader = " "
 -- vim.g.maplocalleader = " "
 
@@ -15,82 +16,106 @@ local keymap = vim.api.nvim_set_keymap
 --   visual_block_mode = "x",
 --   term_mode = "t",
 --   command_mode = "c",
+
 -------------------- Better window navigation ------------------
-keymap("n", "<c-h>", "<c-w>h", opts)
-keymap("n", "<c-l>", "<c-w>l", opts)
-keymap("n", "<c-j>", "<c-w>j", opts)
-keymap("n", "<c-k>", "<c-w>k", opts)
+map("n", "<c-h>", "<c-w>h", opts)
+map("n", "<c-l>", "<c-w>l", opts)
+map("n", "<c-j>", "<c-w>j", opts)
+map("n", "<c-k>", "<c-w>k", opts)
 
 -------------------- Navigate buffers --------------------------
--- keymap("n", "<S-l>", ":bnext<CR>", opts)
--- keymap("n", "<S-h>", ":bprevious<CR>", opts)
-keymap("n", "<S-l>", ":BufferLineCycleNext<CR>", opts)
-keymap("n", "<S-h>", ":BufferLineCyclePrev<CR>", opts)
-keymap("n", "<A-S-l>", ":BufferLineMoveNext<CR>", opts)
-keymap("n", "<A-S-h>", ":BufferLineMovePrev<CR>", opts)
+-- map("n", "<S-l>", ":bnext<CR>", opts)
+-- map("n", "<S-h>", ":bprevious<CR>", opts)
+map("n", "<S-l>", ":BufferLineCycleNext<CR>", opts)
+map("n", "<S-h>", ":BufferLineCyclePrev<CR>", opts)
+map("n", "<A-S-l>", ":BufferLineMoveNext<CR>", opts)
+map("n", "<A-S-h>", ":BufferLineMovePrev<CR>", opts)
 
 -------------------- Press jk fast to enter --------------------
-keymap("i", "jk", "<ESC>", opts)
-keymap("i", "Jk", "<ESC>", opts)
-keymap("i", "jK", "<ESC>", opts)
--- keymap("i", "JK", "<ESC>", opts)
+map("i", "jk", "<ESC>", opts)
+map("i", "Jk", "<ESC>", opts)
+map("i", "jK", "<ESC>", opts)
+-- map("i", "JK", "<ESC>", opts)
 
 -------------------- Stay in indent mode ------------------------
-keymap("v", "<", "<gv", opts)
-keymap("v", ">", ">gv", opts)
-keymap("v", "p", '"_dP', opts)
+map("v", "<", "<gv", opts)
+map("v", ">", ">gv", opts)
+map("v", "p", '"_dP', opts)
 
 -------------------- Resize windows ----------------------------
-keymap("n", "<A-C-j>", ":resize +1<CR>", opts)
-keymap("n", "<A-C-k>", ":resize -1<CR>", opts)
-keymap("n", "<A-C-h>", ":vertical resize +1<CR>", opts)
-keymap("n", "<A-C-l>", ":vertical resize -1<CR>", opts)
+map("n", "<A-C-j>", ":resize +1<CR>", opts)
+map("n", "<A-C-k>", ":resize -1<CR>", opts)
+map("n", "<A-C-h>", ":vertical resize +1<CR>", opts)
+map("n", "<A-C-l>", ":vertical resize -1<CR>", opts)
 
 -------------------- Move text up/ down ------------------------
 -- Visual --
-keymap("v", "<A-S-j>", ":m .+1<CR>==", opts)
-keymap("v", "<A-S-k>", ":m .-2<CR>==", opts)
+map("v", "<A-S-j>", ":m .+1<CR>==", opts)
+map("v", "<A-S-k>", ":m .-2<CR>==", opts)
 -- Block --
--- keymap("x", "J", ":move '>+1<CR>gv-gv", opts)
--- keymap("x", "K", ":move '<-2<CR>gv-gv", opts)
-keymap("x", "<A-S-j>", ":move '>+1<CR>gv-gv", opts)
-keymap("x", "<A-S-k>", ":move '<-2<CR>gv-gv", opts)
+-- map("x", "J", ":move '>+1<CR>gv-gv", opts)
+-- map("x", "K", ":move '<-2<CR>gv-gv", opts)
+map("x", "<A-S-j>", ":move '>+1<CR>gv-gv", opts)
+map("x", "<A-S-k>", ":move '<-2<CR>gv-gv", opts)
 -- Normal --
-keymap("n", "<A-S-j>", ":m .+1<CR>==", opts)
-keymap("n", "<A-S-k>", ":m .-2<CR>==", opts)
+map("n", "<A-S-j>", ":m .+1<CR>==", opts)
+map("n", "<A-S-k>", ":m .-2<CR>==", opts)
 -- Insert --
-keymap("i", "<A-S-j>", "<ESC>:m .+1<CR>==gi", opts)
-keymap("i", "<A-S-k>", "<ESC>:m .-2<CR>==gi", opts)
+map("i", "<A-S-j>", "<ESC>:m .+1<CR>==gi", opts)
+map("i", "<A-S-k>", "<ESC>:m .-2<CR>==gi", opts)
 
 -------------------- No highlight ------------------------------
-keymap("n", ";", ":noh<CR>", opts)
+map("n", ";", ":noh<CR>", opts)
 
 -------------------- Go to buffer quickly ----------------------
-keymap("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", opts)
-keymap("n", "<leader>2", "<Cmd>BufferLineGoToBuffer 2<CR>", opts)
-keymap("n", "<leader>3", "<Cmd>BufferLineGoToBuffer 3<CR>", opts)
-keymap("n", "<leader>4", "<Cmd>BufferLineGoToBuffer 4<CR>", opts)
-keymap("n", "<leader>5", "<Cmd>BufferLineGoToBuffer 5<CR>", opts)
-keymap("n", "<leader>6", "<Cmd>BufferLineGoToBuffer 6<CR>", opts)
-keymap("n", "<leader>7", "<Cmd>BufferLineGoToBuffer 7<CR>", opts)
-keymap("n", "<leader>8", "<Cmd>BufferLineGoToBuffer 8<CR>", opts)
-keymap("n", "<leader>9", "<Cmd>BufferLineGoToBuffer 9<CR>", opts)
+map("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", { desc = "Buffer 1" })
+map("n", "<leader>2", "<Cmd>BufferLineGoToBuffer 2<CR>", { desc = "Buffer 2" })
+map("n", "<leader>3", "<Cmd>BufferLineGoToBuffer 3<CR>", { desc = "Buffer 3" })
+map("n", "<leader>4", "<Cmd>BufferLineGoToBuffer 4<CR>", { desc = "Buffer 4" })
+map("n", "<leader>5", "<Cmd>BufferLineGoToBuffer 5<CR>", { desc = "Buffer 5" })
+map("n", "<leader>6", "<Cmd>BufferLineGoToBuffer 6<CR>", { desc = "Buffer 6" })
+map("n", "<leader>7", "<Cmd>BufferLineGoToBuffer 7<CR>", { desc = "Buffer 7" })
+map("n", "<leader>8", "<Cmd>BufferLineGoToBuffer 8<CR>", { desc = "Buffer 8" })
+map("n", "<leader>9", "<Cmd>BufferLineGoToBuffer 9<CR>", { desc = "Buffer 9" })
 
--------------------- split window ------------------------------
--- keymap("n", "<leader>\\", ":vsplit<CR>", opts)
-keymap("n", "<leader>|", ":split<CR>", opts)
+-------------------- Split window ------------------------------
+-- map("n", "<leader>\\", ":vsplit<CR>", opts)
+map("n", "<leader>|", ":split<CR>", { desc = "Vertical split" })
 
 -------------------- Switch two windows ------------------------
-keymap("n", "<A-o>", "<C-w>r", opts)
-
--------------------- Compile --------------------------------
-keymap("n", "<c-m-n>", "<cmd>only | Compile<CR>", opts)
+map("n", "<A-o>", "<C-w>r", opts)
 
 -------------------- Inspect --------------------------------
-keymap("n", "<F2>", "<cmd>Inspect<CR>", opts)
+map("n", "<F2>", "<cmd>Inspect<CR>", opts)
 
 -------------------- Fuzzy Search --------------------------------
 vim.keymap.set("n", "<C-f>", function()
   -- You can pass additional configuration to telescope to change theme, layout, etc.
   require("telescope.builtin").current_buffer_fuzzy_find(require("telescope.themes"))
 end, { desc = "[/] Fuzzily search in current buffer]" })
+
+-------------------- Saner n and N ---------------------------
+map("n", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
+map("x", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
+map("o", "n", "'Nn'[v:searchforward]", { expr = true, desc = "Next search result" })
+map("n", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
+map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
+map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
+
+-- stylua: ignore start
+
+-------------------- Toggles -----------------------------
+map("n", "<leader>us", function() Util.toggle("spell") end, { desc = "Toggle Spelling" })
+map("n", "<leader>uw", function() Util.toggle("wrap") end, { desc = "Toggle Word Wrap" })
+map("n", "<leader>ul", function() Util.toggle("relativenumber", true) Util.toggle("number") end, { desc = "Toggle Line Numbers" })
+map("n", "<leader>ud", Util.toggle_diagnostics, { desc = "Toggle Diagnostics" })
+local conceallevel = vim.o.conceallevel > 0 and vim.o.conceallevel or 3
+map("n", "<leader>uc", function() Util.toggle("conceallevel", false, {0, conceallevel}) end, { desc = "Toggle Conceal" })
+
+-------------------- Tabs -----------------------------
+map("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last tab" })
+map("n", "<leader><tab>f", "<cmd>tabfirst<cr>", { desc = "First tab" })
+map("n", "<leader><tab><tab>", "<cmd>tabnew<cr>", { desc = "New tab" })
+map("n", "<leader><tab>]", "<cmd>tabnext<cr>", { desc = "Next tab" })
+map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close tab" })
+map("n", "<leader><tab>[", "<cmd>tabprevious<cr>", { desc = "Previous tab" })

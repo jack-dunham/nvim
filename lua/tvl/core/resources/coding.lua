@@ -41,49 +41,10 @@ return {
   },
 
   {
-    "mattn/emmet-vim",
-    event = { "BufRead" },
-    init = function()
-      vim.g.user_emmet_leader_key = "f"
-      vim.g.user_emmet_mode = "n"
-      vim.g.user_emmet_settings = {
-        variables = { lang = "ja" },
-        javascript = {
-          extends = "jsx",
-        },
-        html = {
-          default_attributes = {
-            option = { value = vim.null },
-            textarea = {
-              id = vim.null,
-              name = vim.null,
-              cols = 10,
-              rows = 10,
-            },
-          },
-          snippets = {
-            ["!"] = "<!DOCTYPE html>\n"
-              .. '<html lang="en">\n'
-              .. "<head>\n"
-              .. '\t<meta charset="${charset}">\n'
-              .. '\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
-              .. '\t<meta http-equiv="X-UA-Compatible" content="ie=edge">\n'
-              .. "\t<title></title>\n"
-              .. "</head>\n"
-              .. "<body>\n\t${child}|\n</body>\n"
-              .. "</html>",
-          },
-        },
-      }
-    end,
-  },
-
-  {
     "hrsh7th/nvim-cmp",
     version = false,
     event = { "InsertEnter", "CmdlineEnter" },
     dependencies = {
-      "mfussenegger/nvim-jdtls",
       "hrsh7th/cmp-nvim-lsp",
       "hrsh7th/cmp-buffer",
       "hrsh7th/cmp-path",
@@ -99,11 +60,6 @@ return {
       cmp.setup.cmdline(":", {
         mapping = cmp.mapping.preset.cmdline(),
         sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline" } }),
-      })
-      cmp.setup.filetype("java", {
-        completion = {
-          keyword_length = 2,
-        },
       })
       return {
         completion = {
@@ -156,11 +112,9 @@ return {
   },
 
   {
-    "echasnovski/mini.pairs",
-    event = "VeryLazy",
-    config = function(_, opts)
-      require("mini.pairs").setup(opts)
-    end,
+    "windwp/nvim-autopairs",
+    event = "InsertEnter",
+    opts = {},
   },
 
   -- comments
@@ -181,30 +135,96 @@ return {
   },
 
   {
-    "ray-x/lsp_signature.nvim",
-    event = { "InsertEnter" },
-    opts = {
-      floating_window = false, -- show hint in a floating window, set to false for virtual text only mode
-      floating_window_above_cur_line = true, -- try to place the floating above the current line when possible Note:
-      hint_scheme = "Comment", -- highlight group for the virtual text
-    },
-  },
-
-  {
     "glepnir/lspsaga.nvim",
     lazy = true,
-    config = function ()
-      require("lspsaga").setup({})
-    end
-  },
-
-  {
-    "jackMort/ChatGPT.nvim",
-    lazy = require("tvl.util").apikey == nil,
     config = function()
-      require("chatgpt").setup({
-        api_key_cmd = require("tvl.util").apikey
+      require("lspsaga").setup({})
+    end,
+  },
+  {
+    "echasnovski/mini.ai",
+    -- keys = {
+    --   { "a", mode = { "x", "o" } },
+    --   { "i", mode = { "x", "o" } },
+    -- },
+    event = "VeryLazy",
+    dependencies = { "nvim-treesitter-textobjects" },
+    opts = function()
+      local ai = require("mini.ai")
+      return {
+        n_lines = 500,
+        custom_textobjects = {
+          o = ai.gen_spec.treesitter({
+            a = { "@block.outer", "@conditional.outer", "@loop.outer" },
+            i = { "@block.inner", "@conditional.inner", "@loop.inner" },
+          }, {}),
+          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }, {}),
+          c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
+        },
+      }
+    end,
+    config = function(_, opts)
+      require("mini.ai").setup(opts)
+      -- register all text objects with which-key
+      ---@type table<string, string|table>
+      local i = {
+        [" "] = "Whitespace",
+        ['"'] = 'Balanced "',
+        ["'"] = "Balanced '",
+        ["`"] = "Balanced `",
+        ["("] = "Balanced (",
+        [")"] = "Balanced ) including white-space",
+        [">"] = "Balanced > including white-space",
+        ["cltc"] = "Balanced <",
+        ["]"] = "Balanced ] including white-space",
+        ["["] = "Balanced [",
+        ["}"] = "Balanced } including white-space",
+        ["{"] = "Balanced {",
+        ["?"] = "User Prompt",
+        _ = "Underscore",
+        a = "Argument",
+        b = "Balanced ), ], }",
+        c = "Class",
+        f = "Function",
+        o = "Block, conditional, loop",
+        q = "Quote `, \", '",
+        t = "Tag",
+      }
+      local a = vim.deepcopy(i)
+      for k, v in pairs(a) do
+        a[k] = v:gsub(" including.*", "")
+      end
+
+      local ic = vim.deepcopy(i)
+      local ac = vim.deepcopy(a)
+      for key, name in pairs({ n = "Next", l = "Last" }) do
+        i[key] = vim.tbl_extend("force", { name = "Inside " .. name .. " textobject" }, ic)
+        a[key] = vim.tbl_extend("force", { name = "Around " .. name .. " textobject" }, ac)
+      end
+      require("which-key").register({
+        mode = { "o", "x" },
+        i = i,
+        a = a,
       })
     end,
+  },
+  {
+    "kylechui/nvim-surround",
+    version = "*",
+    event = "VeryLazy",
+    opts = {
+      keymaps = {
+        insert = "<C-g>z",
+        insert_line = "<C-g>Z",
+        normal = "gz",
+        normal_cur = "gZ",
+        normal_line = "gzz",
+        normal_cur_line = "gZZ",
+        visual = "gz",
+        visual_line = "gZ",
+        delete = "gzd",
+        replace = "gzr",
+      },
+    },
   },
 }

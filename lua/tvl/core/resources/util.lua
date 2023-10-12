@@ -14,4 +14,5 @@ return {
     "dstein64/vim-startuptime",
     cmd = "StartupTime",
   },
+  { "tpope/vim-repeat", event = "VeryLazy" },
 }

@@ -1,20 +1,4 @@
 local servers = {
-  rust_analyzer = {
-    settings = {
-      ["rust-analyzer"] = {
-        inlayHints = true,
-      },
-    },
-  },
-  clangd = {},
-  cssls = {},
-  html = {},
-  jsonls = {},
-  sqlls = {},
-  intelephense = {}, -- php language server
-  jdtls = {
-    disabled = true,
-  },
   lua_ls = {
     settings = {
       Lua = {
@@ -43,47 +27,34 @@ local servers = {
       },
     },
   },
-  tsserver = {
-    settings = {
-      typescript = {
-        inlayHints = {
-          includeInlayParameterNameHints = "all",
-          includeInlayParameterNameHintsWhenArgumentMatchesName = true,
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-          includeInlayEnumMemberValueHints = true,
-        },
-      },
-      javascript = {
-        inlayHints = {
-          includeInlayParameterNameHints = "all",
-          includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-          includeInlayFunctionParameterTypeHints = true,
-          includeInlayVariableTypeHints = true,
-          includeInlayPropertyDeclarationTypeHints = true,
-          includeInlayFunctionLikeReturnTypeHints = true,
-          includeInlayEnumMemberValueHints = true,
-        },
-      },
-    },
-  },
-  pyright = {
-    settings = {
-      python = {
-        analysis = {
-          typeCheckingMode = "basic",
-          diagnosticMode = "workspace",
-          inlayHints = {
-            variableTypes = true,
-            functionReturnTypes = true,
-          },
-        },
-      },
-    },
-  },
   bashls = {},
+  texlab = {
+    settings = {
+      texlab = {
+        auxDirectory = "build",
+        bibtexFormatter = "texlab",
+        build = {
+          args = { "--synctex=1", "--shell-escape", "--output-directory=build", "%f" },
+          executable = "lualatex",
+          forwardSearchAfter = false,
+          onSave = false,
+        },
+        chktex = {
+          onEdit = false,
+          onOpenAndSave = false,
+        },
+        diagnosticsDelay = 300,
+        formatterLineLength = 80,
+        forwardSearch = {
+          args = {},
+        },
+        latexFormatter = "latexindent",
+        latexindent = {
+          modifyLineBreaks = false,
+        },
+      },
+    },
+  },
 }
 
 return servers

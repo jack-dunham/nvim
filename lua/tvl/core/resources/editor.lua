@@ -3,8 +3,14 @@ local Icons = require("tvl.core.icons")
 
 return {
   {
-    "loctvl842/neo-tree.nvim",
+    "nvim-neo-tree/neo-tree.nvim",
     cmd = "Neotree",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
+      "MunifTanjim/nui.nvim",
+    },
     keys = {
       {
         "<leader>e",
@@ -25,6 +31,15 @@ return {
         end,
         desc = "Explorer Float (root dir)",
       },
+      {
+        "<leader>-",
+        function()
+          require("neo-tree.command").execute({
+            action = "focus",
+          })
+        end,
+        desc = "(Un)focus tree",
+      },
     },
     init = function()
       vim.g.neo_tree_remove_legacy_commands = 1
@@ -38,17 +53,31 @@ return {
     opts = {
       close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
       popup_border_style = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
+      sources = {
+        "filesystem",
+        "buffers",
+        "git_status",
+      },
       -- source_selector provides clickable tabs to switch between sources.
       source_selector = {
         winbar = true, -- toggle to show selector on winbar
         content_layout = "center",
         tabs_layout = "equal",
         show_separator_on_edge = true,
-        tab_labels = {
-          filesystem = "󰉓",
-          buffers = "󰈙",
-          git_status = "",
-          diagnostics = "󰒡",
+        sources = {
+          {
+            source = "filesystem",
+            display_name = "󰉓",
+          },
+          {
+            source = "buffers",
+            display_name = "󰈙",
+          },
+          {
+            source = "git_status",
+            display_name = "󰊢",
+          },
+          -- diagnostics = "󰒡",
         },
       },
 
@@ -84,6 +113,9 @@ return {
         mappings = {
           ["<1-LeftMouse>"] = "open",
           ["l"] = "open",
+          ["<leader>-"] = function()
+            vim.api.nvim_command("wincmd p")
+          end,
         },
       },
       filesystem = {
@@ -102,7 +134,9 @@ return {
           hide_dotfiles = false,
           hide_gitignored = false,
         },
-        follow_current_file = true, -- This will find and focus the file in the active buffer every
+        follow_current_file = {
+          enabled = true,
+        },
         -- time the current file is changed while the tree is open.
         group_empty_dirs = true, -- when true, empty folders will be grouped together
       },
@@ -118,19 +152,19 @@ return {
         prompt_prefix = "   ",
         selection_caret = "  ",
         entry_prefix = "   ",
-        borderchars = {
-          prompt = Util.generate_borderchars(
-            "thick",
-            nil,
-            { top = "█", top_left = "█", left = "█", right = " ", top_right = " ", bottom_right = " " }
-          ),
-          results = Util.generate_borderchars(
-            "thick",
-            nil,
-            { top = "█", top_left = "█", right = " ", top_right = " ", bottom_right = " " }
-          ),
-          preview = Util.generate_borderchars("thick", nil, { top = "█", top_left = "█", top_right = "█" }),
-        },
+        -- borderchars = {
+        --   prompt = Util.generate_borderchars(
+        --     "thick",
+        --     nil,
+        --     { top = "█", top_left = "█", left = "█", right = " ", top_right = " ", bottom_right = " " }
+        --   ),
+        --   results = Util.generate_borderchars(
+        --     "thick",
+        --     nil,
+        --     { top = "█", top_left = "█", right = " ", top_right = " ", bottom_right = " " }
+        --   ),
+        --   preview = Util.generate_borderchars("thick", nil, { top = "█", top_left = "█", top_right = "█" }),
+        -- },
         dynamic_preview_title = true,
         hl_result_eol = true,
         sorting_strategy = "ascending",
@@ -208,24 +242,24 @@ return {
       { "gr", "<cmd>Telescope lsp_references<cr>", desc = "Go to references" },
       { "gi", "<cmd>Telescope lsp_implementations<cr>", desc = "Go to implementations" },
       -- search
-      { "sb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
-      { "sc", "<cmd>Telescope colorscheme<cr>", desc = "Colorscheme" },
-      { "sh", "<cmd>Telescope help_tags<cr>", desc = "Find Help" },
-      { "sM", "<cmd>Telescope man_pages<cr>", desc = "Man Pages" },
-      { "sr", "<cmd>Telescope oldfiles<cr>", desc = "Open Recent File" },
-      { "sR", "<cmd>Telescope registers<cr>", desc = "Registers" },
-      { "sk", "<cmd>Telescope keymaps<cr>", desc = "Keymaps" },
-      { "sC", "<cmd>Telescope commands<cr>", desc = "Commands" },
-      { "sH", "<cmd>Telescope highlights<cr>", desc = "Highlight Groups" },
+      { "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
+      { "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Colorscheme" },
+      { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Find help" },
+      { "<leader>fM", "<cmd>Telescope man_pages<cr>", desc = "Man pages" },
+      { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Open recent file" },
+      { "<leader>fR", "<cmd>Telescope registers<cr>", desc = "Registers" },
+      { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Keymaps" },
+      { "<leader>fC", "<cmd>Telescope commands<cr>", desc = "Commands" },
+      { "<leader>fH", "<cmd>Telescope highlights<cr>", desc = "Highlight groups" },
       -- Git
       { "<leader>go", "<cmd>Telescope git_status<cr>", desc = "Open changed file" },
       { "<leader>gb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
       { "<leader>gc", "<cmd>Telescope git_commits<cr>", desc = "Checkout commit" },
       -- Find
       -- { "<leader>f",  "<cmd>lua require('telescope.builtin').find_files()<cr>", desc = "Find files" },
-      { "<leader>f", Util.telescope("find_files"), desc = "Find files" },
+      { "<leader><leader>", Util.telescope("find_files"), desc = "Find files" },
       -- { "<leader>F",  "<cmd>Telescope live_grep<cr>",                           desc = "Find Text" },
-      { "<leader>F", Util.telescope("live_grep"), desc = "Find Text" },
+      { "<leader>/", Util.telescope("live_grep"), desc = "Find text" },
     },
     -- config = function() require("tvl.config.telescope") end,
   },
@@ -253,17 +287,15 @@ return {
       local wk = require("which-key")
       wk.setup(opts)
       local keymaps = {
-        ["<leader>w"] = { "<cmd>w!<CR>", "Save" },
-        ["<leader>q"] = { "<cmd>q<CR>", "Quit" },
-        ["<leader>Q"] = { "<cmd>qa<CR>", "Quit All" },
-        ["<leader>h"] = { "<cmd>nohlsearch<CR>", "No Highlight" },
-        ["<leader><Tab>"] = { "<c-6>", "Navigate previous buffer" },
+        ["<leader>h"] = { "<cmd>nohlsearch<CR>", "No highlight" },
+        ["<leader>`"] = { "<c-6>", "Navigate previous buffer" },
         ["<leader>g"] = { name = "+Git" },
-        ["<leader>l"] = { name = "+LSP" },
-        ["<leader>s"] = { name = "+Session" },
-        ["f"] = { name = "+Fold" },
+        ["<leader>c"] = { name = "+Code" },
+        ["<leader>q"] = { name = "+Session" },
+        ["<leader>f"] = { name = "+Find" },
+        ["<leader><tab>"] = { name = "+Tab" },
         ["g"] = { name = "+Goto" },
-        ["s"] = { name = "+Search" },
+        ["<leader>P"] = { ":Lazy<cr>", "Plugins" },
       }
       wk.register(keymaps)
     end,
@@ -292,14 +324,14 @@ return {
     },
     keys = {
       { "<leader>gg", "<cmd>lua _LAZYGIT_TOGGLE()<CR>", desc = "Lazygit" },
-      { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk()<cr>", desc = "Next Hunk" },
-      { "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", desc = "Prev Hunk" },
+      { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk()<cr>", desc = "Next hunk" },
+      { "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", desc = "Prev hunk" },
       { "<leader>gl", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
-      { "<leader>gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", desc = "Preview Hunk" },
-      { "<leader>gr", "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", desc = "Reset Hunk" },
+      { "<leader>gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", desc = "Preview hunk" },
+      { "<leader>gr", "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", desc = "Reset hunk" },
       { "<leader>gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", desc = "Reset Buffer" },
-      { "<leader>gs", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", desc = "Stage Hunk" },
-      { "<leader>gu", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", desc = "Undo Stage Hunk" },
+      { "<leader>gs", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", desc = "Stage hunk" },
+      { "<leader>gu", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", desc = "Undo Stage hunk" },
       { "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Diff" },
     },
   },
@@ -350,6 +382,7 @@ return {
       { "]]", desc = "Next Reference" },
       { "[[", desc = "Prev Reference" },
     },
+    enabled = true,
   },
 
   {
@@ -387,40 +420,40 @@ return {
       open_fold_hl_timeout = 0,
     },
     keys = {
-      { "fd", "zd", desc = "Delete fold under cursor" },
-      { "fo", "zo", desc = "Open fold under cursor" },
-      { "fO", "zO", desc = "Open all folds under cursor" },
-      { "fc", "zC", desc = "Close all folds under cursor" },
-      { "fa", "za", desc = "Toggle fold under cursor" },
-      { "fA", "zA", desc = "Toggle all folds under cursor" },
-      { "fv", "zv", desc = "Show cursor line" },
+      { "zd", desc = "Delete fold under cursor" },
+      { "zo", desc = "Open fold under cursor" },
+      { "zO", desc = "Open all folds under cursor" },
+      { "zC", desc = "Close all folds under cursor" },
+      { "za", desc = "Toggle fold under cursor" },
+      { "zA", desc = "Toggle all folds under cursor" },
+      { "zv", desc = "Show cursor line" },
       {
-        "fM",
+        "zM",
         function()
           require("ufo").closeAllFolds()
         end,
         desc = "Close all folds",
       },
       {
-        "fR",
+        "zR",
         function()
           require("ufo").openAllFolds()
         end,
         desc = "Open all folds",
       },
-      { "fm", "zm", desc = "Fold more" },
-      { "fr", "zr", desc = "Fold less" },
-      { "fx", "zx", desc = "Update folds" },
-      { "fz", "zz", desc = "Center this line" },
-      { "ft", "zt", desc = "Top this line" },
-      { "fb", "zb", desc = "Bottom this line" },
-      { "fg", "zg", desc = "Add word to spell list" },
-      { "fw", "zw", desc = "Mark word as bad/misspelling" },
-      { "fe", "ze", desc = "Right this line" },
-      { "fE", "zE", desc = "Delete all folds in current buffer" },
-      { "fs", "zs", desc = "Left this line" },
-      { "fH", "zH", desc = "Half screen to the left" },
-      { "fL", "zL", desc = "Half screen to the right" },
+      { "zm", desc = "Fold more" },
+      { "zr", desc = "Fold less" },
+      { "zx", desc = "Update folds" },
+      { "zz", desc = "Center this line" },
+      { "zt", desc = "Top this line" },
+      { "zb", desc = "Bottom this line" },
+      { "zg", desc = "Add word to spell list" },
+      { "zw", desc = "Mark word as bad/misspelling" },
+      { "ze", desc = "Right this line" },
+      { "zE", desc = "Delete all folds in current buffer" },
+      { "zs", desc = "Left this line" },
+      { "zH", desc = "Half screen to the left" },
+      { "zL", desc = "Half screen to the right" },
     },
   },
 
@@ -450,6 +483,36 @@ return {
           end
         end,
       })
+    end,
+  },
+
+  {
+    "ggandor/flit.nvim",
+    keys = function()
+      ---@type LazyKeys[]
+      local ret = {}
+      for _, key in ipairs({ "f", "F", "t", "T" }) do
+        ret[#ret + 1] = { key, mode = { "n", "x", "o" }, desc = key }
+      end
+      return ret
+    end,
+    opts = { labeled_modes = "nx" },
+  },
+  {
+    "ggandor/leap.nvim",
+    keys = {
+      { "s", mode = { "n", "x", "o" }, desc = "Leap forward to" },
+      { "S", mode = { "n", "x", "o" }, desc = "Leap backward to" },
+      { "gs", mode = { "n", "x", "o" }, desc = "Leap from windows" },
+    },
+    config = function(_, opts)
+      local leap = require("leap")
+      for k, v in pairs(opts) do
+        leap.opts[k] = v
+      end
+      leap.add_default_mappings(true)
+      vim.keymap.del({ "x", "o" }, "x")
+      vim.keymap.del({ "x", "o" }, "X")
     end,
   },
 }

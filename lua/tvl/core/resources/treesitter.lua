@@ -7,31 +7,32 @@ return {
     opts = {
       ensure_installed = {
         "bash",
-        "html",
-        "javascript",
+        -- "html",
+        -- "javascript",
         "json",
         "lua",
         "markdown",
         "markdown_inline",
-        "python",
+        -- "python",
         "query",
         "regex",
-        "tsx",
-        "typescript",
+        -- "tsx",
+        -- "typescript",
         "vim",
         "yaml",
-        "php",
-        "scss",
-        "cpp",
-        "java",
+        -- "php",
+        -- "scss",
+        -- "cpp",
+        -- "java",
+        "julia",
+        "latex",
       },
       highlight = { enable = true },
-      indent = { enable = true, disable = { "yaml", "python", "html" } },
+      indent = { enable = true, disable = { "yaml" } },
       context_commentstring = { enable = true },
       rainbow = {
         enable = false,
         query = "rainbow-parens",
-        disable = { "jsx", "html" },
       },
     },
     config = function(_, opts)
@@ -43,47 +44,24 @@ return {
     "HiPhish/nvim-ts-rainbow2",
     event = "BufReadPost",
   },
-
   {
-    "windwp/nvim-ts-autotag",
-    ft = {
-      "html",
-      "javascript",
-      "typescript",
-      "javascriptreact",
-      "typescriptreact",
-      "svelte",
-      "vue",
-      "tsx",
-      "jsx",
-      "rescript",
-      "xml",
-      "php",
-      "markdown",
-      "glimmer",
-      "handlebars",
-      "hbs",
-    },
-    opts = {
-      enable = true,
-      filetypes = {
-        "html",
-        "javascript",
-        "typescript",
-        "javascriptreact",
-        "typescriptreact",
-        "svelte",
-        "vue",
-        "tsx",
-        "jsx",
-        "rescript",
-        "xml",
-        "php",
-        "markdown",
-        "glimmer",
-        "handlebars",
-        "hbs",
-      },
-    },
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    init = function()
+      -- PERF: no need to load the plugin, if we only need its queries for mini.ai
+      local plugin = require("lazy.core.config").spec.plugins["nvim-treesitter"]
+      local opts = require("lazy.core.plugin").values(plugin, "opts", false)
+      local enabled = false
+      if opts.textobjects then
+        for _, mod in ipairs({ "move", "select", "swap", "lsp_interop" }) do
+          if opts.textobjects[mod] and opts.textobjects[mod].enable then
+            enabled = true
+            break
+          end
+        end
+      end
+      if not enabled then
+        require("lazy.core.loader").disable_rtp_plugin("nvim-treesitter-textobjects")
+      end
+    end,
   },
 }

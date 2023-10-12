@@ -8,18 +8,18 @@ return {
       "williamboman/mason-lspconfig.nvim",
     },
     keys = {
-      { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code Action" },
-      { "<leader>ld", "<cmd>Telescope lsp_document_diagnostics<cr>", desc = "Document Diagnostics" },
-      { "<leader>lw", "<cmd>Telescope lsp_workspace_diagnostics<cr>", desc = "Workspace Diagnostics" },
-      { "<leader>li", "<cmd>LspInfo<cr>", desc = "Info" },
-      { "<leader>lI", "<cmd>LspInstallInfo<cr>", desc = "Installer Info" },
-      { "<leader>lj", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", desc = "Next Diagnostic" },
-      { "<leader>lk", "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", desc = "Prev Diagnostic" },
-      { "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>", desc = "CodeLens Action" },
-      { "<leader>lq", "<cmd>lua vim.lsp.diagnostic.set_loclist()<cr>", desc = "Quickfix" },
-      { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
-      { "<leader>ls", "<cmd>Telescope lsp_document_symbols<cr>", desc = "Document Symbols" },
-      { "<leader>lS", "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", desc = "Workspace Symbols" },
+      { "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>", desc = "Code action" },
+      { "<leader>cd", "<cmd>Telescope lsp_document_diagnostics<cr>", desc = "Document diagnostics" },
+      { "<leader>cw", "<cmd>Telescope lsp_workspace_diagnostics<cr>", desc = "Workspace diagnostics" },
+      { "<leader>ci", "<cmd>LspInfo<cr>", desc = "Info" },
+      { "<leader>cI", "<cmd>LspInstallInfo<cr>", desc = "Installer Info" },
+      { "<leader>cj", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", desc = "Next diagnostic" },
+      { "<leader>ck", "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", desc = "Prev diagnostic" },
+      { "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<cr>", desc = "CodeLens action" },
+      { "<leader>cq", "<cmd>lua vim.lsp.diagnostic.set_loclist()<cr>", desc = "Quickfix" },
+      { "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<cr>", desc = "Rename" },
+      { "<leader>cs", "<cmd>Telescope lsp_document_symbols<cr>", desc = "Document symbols" },
+      { "<leader>cS", "<cmd>Telescope lsp_dynamic_workspace_symbols<cr>", desc = "Workspace symbols" },
       {
         "<leader>W",
         function()
@@ -109,10 +109,7 @@ return {
         sources = {
           formatting.prettier,
           formatting.stylua,
-          formatting.black,
           formatting.markdownlint,
-          formatting.beautysh.with({ extra_args = { "--indent-size", "2" } }),
-          diagnostics.flake8.with({ extra_args = { "--ignore=E203,E501" }, filetypes = { "python" } }),
         },
       })
     end,
@@ -125,15 +122,10 @@ return {
       ensure_installed = {
         "prettier",
         "stylua",
-        "google_java_format",
-        "black",
-        "flake8",
         "markdownlint",
         "beautysh",
       },
       automatic_setup = true,
     },
   },
-
-  "mfussenegger/nvim-jdtls",
 }

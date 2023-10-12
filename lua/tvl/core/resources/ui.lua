@@ -10,7 +10,7 @@ return {
         function()
           require("notify").dismiss({ silent = true, pending = true })
         end,
-        desc = "Delete all Notifications",
+        desc = "Delete all notifications",
       },
     },
     opts = {
@@ -70,6 +70,10 @@ return {
           delay = 0,
           reveal = { "close" },
         },
+        numbers = function(opts)
+          return string.format("%s|%s", opts.id, opts.raise(opts.ordinal))
+        end,
+        highlights = require("catppuccin.groups.integrations.bufferline").get(),
       },
     },
   },
@@ -93,27 +97,33 @@ return {
   {
     "lukas-reineke/indent-blankline.nvim",
     event = { "BufReadPost", "BufNewFile" },
+    main = "ibl",
     opts = {
-      char = "▏",
-      context_char = "▏",
-      show_end_of_line = false,
-      space_char_blankline = " ",
-      show_current_context = true,
-      show_current_context_start = true,
-      filetype_exclude = {
-        "help",
-        "startify",
-        "dashboard",
-        "packer",
-        "neogitstatus",
-        "NvimTree",
-        "Trouble",
-        "alpha",
-        "neo-tree",
+      indent = {
+        char = "▏",
       },
-      buftype_exclude = {
-        "terminal",
-        "nofile",
+      scope = {
+        enabled = true,
+        char = "▏",
+        show_start = true,
+        show_end = false,
+      },
+      exclude = {
+        filetypes = {
+          "help",
+          "startify",
+          "dashboard",
+          "packer",
+          "neogitstatus",
+          "NvimTree",
+          "Trouble",
+          "alpha",
+          "neo-tree",
+        },
+        buftypes = {
+          "terminal",
+          "nofile",
+        },
       },
       -- char_highlight_list = {
       --   "IndentBlanklineIndent1",
@@ -165,26 +175,29 @@ return {
       "nvim-tree/nvim-web-devicons",
     },
     opts = {
-      theme = "auto",
+      theme = "catppuccin",
       include_buftypes = { "" },
       exclude_filetypes = { "gitcommit", "Trouble", "toggleterm" },
       show_modified = false,
       kinds = Icon.kinds,
     },
+    config = function(_, opts)
+      require("nvim-navic").setup({
+        highlight = true,
+      })
+      require("barbecue").setup(opts)
+    end,
   },
 
   {
     "akinsho/toggleterm.nvim",
     event = { "BufReadPost" },
     opts = {
+      size = 25,
       open_mapping = [[<C-\>]],
       start_in_insert = true,
-      direction = "float",
+      direction = "horizontal",
       autochdir = false,
-      float_opts = {
-        border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
-        winblend = 0,
-      },
       highlights = {
         FloatBorder = { link = "ToggleTermBorder" },
         Normal = { link = "ToggleTerm" },
@@ -254,7 +267,7 @@ return {
       { "anuvyklack/animation.nvim", enabled = true },
     },
     opts = {
-      animation = { enable = true, duration = 150, fps = 60 },
+      animation = { enable = false, duration = 150, fps = 60 },
       autowidth = { enable = true },
     },
     keys = { { "<leader>m", "<cmd>WindowsMaximize<CR>", desc = "Zoom window" } },
@@ -263,6 +276,7 @@ return {
       vim.o.winminwidth = 30
       vim.o.equalalways = true
     end,
+    enabled = true,
   },
 
   {
@@ -305,11 +319,6 @@ return {
       vim.ui.select = function(...)
         require("lazy").load({ plugins = { "dressing.nvim" } })
         return vim.ui.select(...)
-      end
-      ---@diagnostic disable-next-line: duplicate-set-field
-      vim.ui.input = function(...)
-        require("lazy").load({ plugins = { "dressing.nvim" } })
-        return vim.ui.input(...)
       end
     end,
   },
@@ -373,5 +382,36 @@ return {
         },
       },
     },
+  },
+  {
+    "karb94/neoscroll.nvim",
+    keys = {
+      -- { "<c-d>", Util.lazy_keys("<c-d>zz"), { desc = "Scroll down half screen" } },
+      -- { "<c-u>", Util.lazy_keys("<c-u>zz"), { desc = "Scroll up half screen" } },
+      {
+        "<c-u>",
+        '<cmd>lua vim.api.nvim_command("normal " .. vim.wo.scroll .. "k"); require("neoscroll").zz(220)<cr>',
+        { desc = "Scroll up half screen" },
+      },
+      {
+        "<c-d>",
+        '<cmd>lua vim.api.nvim_command("normal " .. -vim.wo.scroll .. "j"); require("neoscroll").zz(220)<cr>',
+        { desc = "Scroll down half screen" },
+      },
+      "zz",
+      "zt",
+      "zb",
+      "G",
+      "gg",
+    },
+    config = true,
+    opts = {
+      easing_function = "sine",
+      mappings = { "zz", "zt", "zb", "G", "gg" },
+    },
+  },
+  {
+    "stevearc/stickybuf.nvim",
+    opts = {},
   },
 }

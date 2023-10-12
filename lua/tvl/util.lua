@@ -1,3 +1,5 @@
+local Util = require("lazy.core.util")
+
 local M = {}
 
 M.root_patterns = { ".git", "lua", "package.json", "mvnw", "gradlew", "pom.xml", "build.gradle", "release", ".project" }
@@ -213,6 +215,64 @@ M.generate_borderchars = function(type, order, opts)
   end
 
   return borderchars
+end
+
+---@param silent boolean?
+---@param values? {[1]:any, [2]:any}
+
+M.toggle = function(option, silent, values)
+  if values then
+    if vim.opt_local[option]:get() == values[1] then
+      vim.opt_local[option] = values[2]
+    else
+      vim.opt_local[option] = values[1]
+    end
+    return Util.info("Set " .. option .. " to " .. vim.opt_local[option]:get(), { title = "Option" })
+  end
+  vim.opt_local[option] = not vim.opt_local[option]:get()
+  if not silent then
+    if vim.opt_local[option]:get() then
+      Util.info("Enabled " .. option, { title = "Option" })
+    else
+      Util.warn("Disabled " .. option, { title = "Option" })
+    end
+  end
+end
+
+M.map = function(mode, lhs, rhs, opts)
+  local keys = require("lazy.core.handler").handlers.keys
+  ---@cast keys LazyKeysHandler
+  -- do not create the map if a lazy keys handler exists
+  if not keys.active[keys.parse({ lhs, mode = mode }).id] then
+    opts = opts or {}
+    opts.silent = opts.silent ~= false
+    if opts.remap and not vim.g.vscode then
+      opts.remap = nil
+    end
+    vim.keymap.set(mode, lhs, rhs, opts)
+  end
+end
+
+local enabled = true
+M.toggle_diagnostics = function()
+  enabled = not enabled
+  if enabled then
+    vim.diagnostic.enable()
+    Util.info("Enabled diagnostics", { title = "Diagnostics" })
+  else
+    vim.diagnostic.disable()
+    Util.warn("Disabled diagnostics", { title = "Diagnostics" })
+  end
+end
+
+M.lazy_keys = function(keys)
+  keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
+  return function()
+    local old = vim.o.lazyredraw
+    vim.o.lazyredraw = true
+    vim.api.nvim_feedkeys(keys, "nx", false)
+    vim.o.lazyredraw = old
+  end
 end
 
 return M
