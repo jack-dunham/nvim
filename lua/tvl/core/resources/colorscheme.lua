@@ -1,33 +1,54 @@
 return {
   {
     "folke/tokyonight.nvim",
-    lazy = true,
-  },
-
-  {
-    "catppuccin/nvim",
-    name = "catppuccin",
     priority = 1000,
     opts = {
-      integrations = {
-        notify = true,
-        neotree = true,
-        noice = true,
-        navic = {
-          enabled = true
-        },
-        ts_rainbow2 = true,
-        telescope = {
-          eanbled = true,
-        },
-        which_key = true,
-      },
+      style = "moon",
+      dim_inactive = false,
+      sidebars = { "terminal", "help" },
     },
-    config = function(_,opts)
-      require("catppuccin").setup(opts)
-      vim.cmd.colorscheme("catppuccin")
-    end
+    config = function(_, opts)
+      require("tokyonight").setup(opts)
+      vim.cmd.colorscheme("tokyonight")
+    end,
   },
+  -- {
+  --   "EdenEast/nightfox.nvim",
+  --   lazy = true,
+  --   opts = {
+  --     options = {
+  --       dim_inactive = true,
+  --       styles = {
+  --         comments = "italic",
+  --       },
+  --     },
+  --   },
+  -- },
+  --
+  -- {
+  --   "catppuccin/nvim",
+  --   name = "catppuccin",
+  --   priority = 1000,
+  --   opts = {
+  --     integrations = {
+  --       notify = true,
+  --       neotree = true,
+  --       noice = true,
+  --       navic = {
+  --         enabled = true,
+  --       },
+  --       ts_rainbow2 = true,
+  --       telescope = {
+  --         eanbled = true,
+  --       },
+  --       which_key = true,
+  --     },
+  --   },
+  --   config = function(_, opts)
+  --     require("catppuccin").setup(opts)
+  --     vim.cmd.colorscheme("catppuccin")
+  --   end,
+  -- },
 
   -- {
   --   "loctvl842/monokai-pro.nvim",

@@ -17,9 +17,6 @@ vim.api.nvim_create_autocmd("User", {
         tabline = 0,
         winbar = 0,
       },
-      shortcut = {
-        { desc = "󰚰 Update", group = "@property", action = "Lazy update", key = "u" },
-      },
       config = {
         header = Logo.dragon.generate("night_fury"),
         center = {
@@ -62,18 +59,18 @@ vim.api.nvim_create_autocmd("User", {
           {
             icon = "󰤄   ",
             icon_hl = "DashboardLazy",
-            desc = "Lazy",
+            desc = "Plugins",
             -- desc_hi = "String",
-            key = "l",
+            key = "p",
             key_hl = "DashboardLazy",
             action = "Lazy",
           },
           {
             icon = "   ",
             icon_hl = "DashboardServer",
-            desc = "Mason",
+            desc = "Language Servers",
             -- desc_hi = "String",
-            key = "m",
+            key = "l",
             key_hl = "DashboardServer",
             action = "Mason",
           },

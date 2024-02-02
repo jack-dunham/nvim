@@ -1,28 +1,56 @@
 return {
+  -- {
+  --   "abecodes/tabout.nvim",
+  --   event = { "InsertEnter" },
+  --   enabled = false,
+  --   dependencies = { "nvim-treesitter", "nvim-cmp" },
+  --   opts = {
+  --     tabkey = "<Tab>",
+  --     backwards_tabkey = "<S-Tab>",
+  --   },
+  {
+    "kawre/neotab.nvim",
+    event = "InsertEnter",
+    enabled = true,
+    opts = {
+      tabkey = "",
+      act_as_tab = true,
+    },
+  },
+
   {
     "L3MON4D3/LuaSnip",
-    dependencies = {
-      "rafamadriz/friendly-snippets",
-      config = function()
-        require("luasnip.loaders.from_vscode").lazy_load()
-        require("luasnip.loaders.from_snipmate").lazy_load()
-      end,
-    },
-    opts = {
-      history = true,
-      delete_check_events = "TextChanged",
-    },
+    dependencies = { "neotab.nvim" },
+    config = function()
+      local opts = {
+        history = true,
+        delete_check_events = "TextChanged",
+        enable_autosnippets = true,
+      }
+      require("luasnip").setup(opts)
+
+      local ls = require("luasnip")
+      local s = ls.snippet
+      local sn = ls.snippet_node
+      local isn = ls.indent_snippet_node
+      local t = ls.text_node
+      local i = ls.insert_node
+      local f = ls.function_node
+      local c = ls.choice_node
+      local d = ls.dynamic_node
+      local r = ls.restore_node
+      local events = require("luasnip.util.events")
+      local ai = require("luasnip.nodes.absolute_indexer")
+      local fmt = require("luasnip.extras.fmt").fmt
+      local m = require("luasnip.extras").m
+      local lambda = require("luasnip.extras").l
+      local postfix = require("luasnip.extras.postfix").postfix
+
+      require("luasnip.loaders.from_vscode").lazy_load({ paths = { vim.fn.stdpath("config") .. "/snippets" } })
+      require("luasnip.loaders.from_lua").lazy_load({ paths = { vim.fn.stdpath("config") .. "/LuaSnip/" } })
+    end,
     -- stylua: ignore
     keys = {
-      {
-        "<tab>",
-        function()
-          return require("luasnip").jumpable(1) and "<Plug>luasnip-jump-next" or "<tab>"
-        end,
-        expr = true,
-        silent = true,
-        mode = "i",
-      },
       {
         "<tab>",
         function()
@@ -41,6 +69,60 @@ return {
   },
 
   {
+    "chrisgrieser/nvim-scissors",
+    dependencies = "nvim-telescope/telescope.nvim",
+    opts = { jsonFormatter = "jq" },
+    keys = {
+      {
+        "<leader>za",
+        function()
+          require("scissors").addNewSnippet()
+        end,
+        desc = "Add new snippet",
+        mode = { "n", "x" },
+      },
+      {
+        "<leader>ze",
+        function()
+          require("scissors").editSnippet()
+        end,
+        desc = "Edit snippet",
+      },
+    },
+  },
+  {
+    "smjonas/snippet-converter.nvim",
+    -- SnippetConverter uses semantic versioning. Example: use version = "1.*" to avoid breaking changes on version 1.
+    -- Uncomment the next line to follow stable releases only.
+    -- tag = "*",
+    config = function()
+      local template = {
+        -- name = "t1", (optionally give your template a name to refer to it in the `ConvertSnippets` command)
+        sources = {
+          ultisnips = {
+            -- Add snippets from (plugin) folders or individual files on your runtimepath...
+            "~/Downloads/tex.snippets",
+          },
+        },
+        output = {
+          -- Specify the output formats and paths
+          vscode_luasnip = {
+            vim.fn.stdpath("config") .. "/snippets",
+          },
+          snipmate = {
+            vim.fn.stdpath("config") .. "/snipmate",
+          },
+        },
+      }
+
+      require("snippet_converter").setup({
+        templates = { template },
+        -- To change the default settings (see configuration section in the documentation)
+        -- settings = {},
+      })
+    end,
+  },
+  {
     "hrsh7th/nvim-cmp",
     version = false,
     event = { "InsertEnter", "CmdlineEnter" },
@@ -50,20 +132,24 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
       "saadparwaiz1/cmp_luasnip",
+      "kawre/neotab.nvim",
     },
     opts = function()
       local cmp = require("cmp")
+      local luasnip = require("luasnip")
+
       cmp.setup.cmdline("/", {
-        mapping = cmp.mapping.preset.cmdline(),
+        -- mapping = cmp.mapping.preset.cmdline(),
         sources = { { name = "buffer" } },
       })
       cmp.setup.cmdline(":", {
-        mapping = cmp.mapping.preset.cmdline(),
+        -- mapping = cmp.mapping.preset.cmdline(),
         sources = cmp.config.sources({ { name = "path" } }, { { name = "cmdline" } }),
       })
       return {
         completion = {
           completeopt = "menu,menuone,noinsert",
+          keyword_length = 1,
         },
         snippet = {
           expand = function(args)
@@ -77,36 +163,44 @@ return {
           ["<C-f>"] = cmp.mapping.scroll_docs(4),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
-          ["<Tab>"] = cmp.mapping.select_next_item({ behavior = cmp.SelectBehavior.Insert }),
-          ["<S-Tab>"] = cmp.mapping.select_prev_item({ behavior = cmp.SelectBehavior.Insert }),
+          -- ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+          ["<Tab>"] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+              cmp.confirm({ select = true })
+            elseif luasnip.expand_or_locally_jumpable() then
+              luasnip.expand_or_jump()
+            else
+              require("neotab").tabout()
+            end
+          end, { "i", "c" }),
           ["<Esc>"] = cmp.mapping(function(fallback)
-            require("luasnip").unlink_current()
+            -- require("luasnip").unlink_current()
             fallback()
           end),
         }),
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
+          -- { name = "luasnip" },
           { name = "luasnip" },
           { name = "buffer" },
           { name = "path" },
         }),
         formatting = {
-          fields = { "kind", "abbr", "menu" },
+          -- fields = { "kind", "abbr", "menu" },
           format = function(entry, item)
             local icons = require("tvl.core.icons").kinds
-            item.kind = icons[item.kind]
+            item.kind = string.format("%s %s", icons[item.kind], item.kind)
             item.menu = ({
-              nvim_lsp = "Lsp",
-              nvim_lua = "Lua",
-              luasnip = "Snippet",
-              buffer = "Buffer",
-              path = "Path",
+              nvim_lsp = "[LSP]",
+              nvim_lua = "[Lua]",
+              luasnip = "[Snippet]",
+              buffer = "[Buffer]",
+              path = "[Path]",
             })[entry.source.name]
             return item
           end,
         },
-        experimental = { ghost_text = true },
+        experimental = { ghost_text = false },
       }
     end,
   },
@@ -225,6 +319,12 @@ return {
         delete = "gzd",
         replace = "gzr",
       },
+    },
+    keys = {
+      { "gz", desc = "Surround a motion" },
+      { "gzz", desc = "Surround line" },
+      { "gzd", desc = "Delete surrounding pair" },
+      { "gzr", desc = "Replace surrounding pair" },
     },
   },
 }

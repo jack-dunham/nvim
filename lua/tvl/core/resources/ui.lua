@@ -3,37 +3,12 @@ local Icon = require("tvl.core.icons")
 
 return {
   {
-    "rcarriga/nvim-notify",
-    keys = {
-      {
-        "<leader>n",
-        function()
-          require("notify").dismiss({ silent = true, pending = true })
-        end,
-        desc = "Delete all notifications",
-      },
-    },
+    "j-hui/fidget.nvim",
     opts = {
-      icons = {
-        ERROR = Icon.diagnostics.error .. " ",
-        INFO = Icon.diagnostics.info .. " ",
-        WARN = Icon.diagnostics.warn .. " ",
+      notification = {
+        override_vim_notify = true,
       },
-      timeout = 3000,
-      max_height = function()
-        return math.floor(vim.o.lines * 0.75)
-      end,
-      max_width = function()
-        return math.floor(vim.o.columns * 0.75)
-      end,
     },
-    init = function()
-      if not Util.has("noice.nvim") then
-        Util.on_very_lazy(function()
-          vim.notify = require("notify")
-        end)
-      end
-    end,
   },
 
   {
@@ -42,14 +17,6 @@ return {
     opts = {
       options = {
         diagnostics = "nvim_lsp", -- | "nvim_lsp" | "coc",
-        -- separator_style = "", -- | "thick" | "thin" | "slope" | { 'any', 'any' },
-        -- separator_style = { "", "" }, -- | "thick" | "thin" | { 'any', 'any' },
-        separator_style = "slant", -- | "thick" | "thin" | { 'any', 'any' },
-        indicator = {
-          -- icon = " ",
-          -- style = 'icon',
-          style = "underline",
-        },
         close_command = "Bdelete! %d", -- can be a string | function, see "Mouse actions"
         diagnostics_indicator = function(count, _, _, _)
           if count > 9 then
@@ -57,23 +24,24 @@ return {
           end
           return tostring(count)
         end,
-        offsets = {
-          {
-            filetype = "neo-tree",
-            text = "EXPLORER",
-            text_align = "center",
-            -- separator = true,
-          },
-        },
+        -- offsets = {
+        --   {
+        --     filetype = "neo-tree",
+        --     text = "EXPLORER",
+        --     text_align = "center",
+        --     -- separator = true,
+        --   },
+        -- },
         hover = {
           enabled = true,
-          delay = 0,
+          delay = 200,
           reveal = { "close" },
         },
-        numbers = function(opts)
-          return string.format("%s|%s", opts.id, opts.raise(opts.ordinal))
-        end,
-        highlights = require("catppuccin.groups.integrations.bufferline").get(),
+        -- numbers = function(opts)
+        --   return string.format("%s.%s", opts.id, opts.raise(opts.ordinal))
+        -- end,
+        numbers = "ordinal",
+        -- highlights = require("catppuccin.groups.integrations.bufferline").get(),
       },
     },
   },
@@ -103,7 +71,7 @@ return {
         char = "▏",
       },
       scope = {
-        enabled = true,
+        enabled = false,
         char = "▏",
         show_start = true,
         show_end = false,
@@ -139,6 +107,7 @@ return {
   {
     "echasnovski/mini.indentscope",
     lazy = true,
+    event = "BufEnter",
     enabled = true,
     -- lazy = true,
     version = false, -- wait till new 0.7.0 release to put it back on semver
@@ -175,7 +144,7 @@ return {
       "nvim-tree/nvim-web-devicons",
     },
     opts = {
-      theme = "catppuccin",
+      theme = "tokyonight",
       include_buftypes = { "" },
       exclude_filetypes = { "gitcommit", "Trouble", "toggleterm" },
       show_modified = false,
@@ -193,7 +162,7 @@ return {
     "akinsho/toggleterm.nvim",
     event = { "BufReadPost" },
     opts = {
-      size = 25,
+      size = 20,
       open_mapping = [[<C-\>]],
       start_in_insert = true,
       direction = "horizontal",
@@ -209,8 +178,79 @@ return {
           return string.format("%d:%s", term.id, term:_display_name())
         end,
       },
+      shade_terminals = true,
     },
   },
+
+  -- {
+  --   "milanglacier/yarepl.nvim",
+  --   event = "VeryLazy",
+  --   opts = {
+  --     wincmd = "botright 25 split",
+  --     buflisted = false,
+  --     metas = {
+  --       julia = {
+  --         cmd = "julia",
+  --         formatter = function(lines)
+  --           return lines
+  --           -- return table.insert(lines, "<Enter>")
+  --         end,
+  --       },
+  --     },
+  --   },
+  --   keys = {
+  --     { [[<C-\>]], "<cmd>REPLFocus<cr>", desc = "Focus REPL" },
+  --     { [[<C-\>]], "<cmd>REPLSendVisual<cr>", desc = "Send to REPL", mode = "v" },
+  --     { "<leader>rs", "<cmd>REPLStart<cr>", desc = "Start REPL" },
+  --     { "<leader>rf", "<cmd>REPLFocus<cr>", desc = "Focus REPL" },
+  --     { "<leader>rh", "<cmd>REPLHide<cr>", desc = "Hide REPL" },
+  --     { "<leader>rq", "<cmd>REPLClose<cr>", desc = "Quit REPL" },
+  --     { "<leader>rc", "<cmd>REPLCleanup<cr>", desc = "Clear REPL" },
+  --     { "<leader>rr", "<cmd>REPLSendVisual<cr>", desc = "Send selection to REPL", mode = "v" },
+  --     { "<leader>rr", "<cmd>REPLSendLine<cr>", desc = "Send current line to REPL", mode = "n" },
+  --     { "<leader>re", "<cmd>REPLExec<cr>", desc = "Execute command in REPL" },
+  --   },
+  --   config = function(_, opts)
+  --     vim.api.nvim_create_user_command("REPLStartOrFocus", function()
+  --       local current_buffer = vim.api.nvim_get_current_buf()
+  --       local repl = require("yarepl").bufnr_is_attached_to_repl(current_buffer)
+  --       if not repl then
+  --         vim.cmd("1REPLStart")
+  --         vim.cmd("1REPLAttachBufferToREPL")
+  --       end
+  --       vim.cmd("REPLFocus")
+  --     end, {})
+  --     require("yarepl").setup(opts)
+  --   end,
+  -- },
+
+  -- {
+  --   "Vigemus/iron.nvim",
+  --   branch = "master",
+  --   keys = {
+  --     { [[<C-\>]], "<cmd>IronFocus<cr>i", desc = "Focus/open REPL" },
+  --     { [[<C-\>]], "<cmd>lua require('iron.core').visual_send()<cr>", desc = "Send to REPL", mode = "v" },
+  --     { "<leader>rs", "<cmd>IronRepl<cr>", desc = "Start REPL" },
+  --     { "<leader>rf", "<cmd>IronFocus<cr>i", desc = "Focus REPL" },
+  --     { "<leader>rh", "<cmd>IronHide<cr>", desc = "Hide REPL" },
+  --     { "<leader>rr", "<cmd>lua require('iron.core').visual_send()<cr>", desc = "Send selection to REPL", mode = "v" },
+  --     { "<leader>rr", "<cmd>lua require('iron.core').send_line()<cr>", desc = "Send current line to REPL" },
+  --   },
+  --   config = function()
+  --     local core = require("iron.core")
+  --     local view = require("iron.view")
+  --     local opts = {
+  --       config = {
+  --         repl_definition = {
+  --           -- sh = { command = { "zsh" } },
+  --           -- julia = { commmand = { "julia" } },
+  --         },
+  --         repl_open_cmd = view.split.horizontal.botright(25),
+  --       },
+  --     }
+  --     core.setup(opts)
+  --   end,
+  -- },
 
   {
     "glepnir/dashboard-nvim",
@@ -264,7 +304,7 @@ return {
     event = "WinNew",
     dependencies = {
       { "anuvyklack/middleclass" },
-      { "anuvyklack/animation.nvim", enabled = true },
+      { "anuvyklack/animation.nvim", enabled = false },
     },
     opts = {
       animation = { enable = false, duration = 150, fps = 60 },
@@ -308,11 +348,11 @@ return {
     "stevearc/dressing.nvim",
     lazy = false,
     opts = {
-      input = {
-        border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
-        win_options = { winblend = 0 },
-      },
-      select = { telescope = Util.telescope_theme("cursor") },
+      -- input = {
+      --   border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
+      --   win_options = { winblend = 0 },
+      -- },
+      -- select = { telescope = Util.telescope_theme("cursor") },
     },
     init = function()
       ---@diagnostic disable-next-line: duplicate-set-field
@@ -352,9 +392,11 @@ return {
   {
     "folke/noice.nvim",
     event = "VeryLazy",
+    enabled = { true },
     opts = {
+      notify = { enabled = false },
       cmdline = {
-        view = "cmdline",
+        view = "cmdline_popup",
         format = {
           cmdline = { icon = "  " },
           search_down = { icon = "  󰄼" },
@@ -363,7 +405,7 @@ return {
         },
       },
       lsp = {
-        progress = { enabled = true },
+        progress = { enabled = false },
         hover = { enabled = false },
         signature = { enabled = false },
         -- override markdown rendering so that **cmp** and other plugins use **Treesitter**
@@ -384,6 +426,100 @@ return {
     },
   },
   {
+    "folke/edgy.nvim",
+    event = "VeryLazy",
+    init = function()
+      vim.opt.laststatus = 3
+      vim.opt.splitkeep = "topline"
+    end,
+    keys = {
+      {
+        "<leader>-",
+        function()
+          require("edgy").toggle("left")
+        end,
+        desc = "Toggle sidebar",
+      },
+    },
+    opts = {
+      exit_when_last = true,
+      bottom = {
+        -- toggleterm / lazyterm at the bottom with a height of 40% of the screen
+        {
+          title = "TERMINAL",
+          ft = "toggleterm",
+          size = { height = 0.35 },
+          -- exclude floating windows
+          filter = function(buf, win)
+            return vim.api.nvim_win_get_config(win).relative == ""
+          end,
+        },
+      },
+      left = {
+        -- Neo-tree filesystem always takes half the screen height
+        {
+          title = "FILES",
+          ft = "neo-tree",
+          filter = function(buf)
+            return vim.b[buf].neo_tree_source == "filesystem"
+          end,
+          pinned = true,
+          -- size = { height = 0.5 },
+          open = function()
+            require("neo-tree.command").execute({
+              actions = "show",
+              position = "left",
+              dir = require("tvl.util").get_root(),
+            })
+          end,
+        },
+        -- {
+        --   title = "OUTLINE",
+        --   ft = "neo-tree",
+        --   filter = function(buf)
+        --     return vim.b[buf].neo_tree_source == "document_symbols"
+        --   end,
+        --   pinned = true,
+        --   size = { height = 0.5 },
+        --   open = "Neotree position=top document_symbols",
+        -- },
+        {
+          title = "OUTLINE",
+          ft = "Outline",
+          pinned = true,
+          open = "OutlineOpen!",
+          -- size = { height = 0.5 },
+        },
+        -- any other neo-tree windows
+        "neo-tree",
+      },
+    },
+  },
+  {
+    "echasnovski/mini.animate",
+    enabled = false,
+    version = "*",
+    config = function()
+      local animate = require("mini.animate")
+      local timing = animate.gen_timing.linear({ duration = 50, unit = "total" })
+      local opts = {
+        scroll = {
+          enable = false,
+        },
+        resize = {
+          timing = timing,
+        },
+        open = {
+          timing = timing,
+        },
+        clsoe = {
+          timing = timing,
+        },
+      }
+      animate.setup(opts)
+    end,
+  },
+  {
     "karb94/neoscroll.nvim",
     keys = {
       -- { "<c-d>", Util.lazy_keys("<c-d>zz"), { desc = "Scroll down half screen" } },
@@ -395,7 +531,7 @@ return {
       },
       {
         "<c-d>",
-        '<cmd>lua vim.api.nvim_command("normal " .. -vim.wo.scroll .. "j"); require("neoscroll").zz(220)<cr>',
+        '<cmd>lua vim.api.nvim_command("normal " .. vim.wo.scroll .. "j"); require("neoscroll").zz(220)<cr>',
         { desc = "Scroll down half screen" },
       },
       "zz",
@@ -403,15 +539,34 @@ return {
       "zb",
       "G",
       "gg",
+      "n",
+      "N",
     },
-    config = true,
     opts = {
       easing_function = "sine",
       mappings = { "zz", "zt", "zb", "G", "gg" },
     },
+    config = function(_, opts)
+      require("neoscroll").setup(opts)
+      vim.keymap.set("n", "n", "(v:searchforward ? 'nzz' : 'Nzz' )", { expr = true, remap = true })
+      vim.keymap.set("n", "N", "(v:searchforward ? 'Nzz' : 'nzz' )", { expr = true, remap = true })
+    end,
   },
   {
     "stevearc/stickybuf.nvim",
-    opts = {},
+    opts = {
+      get_auto_pin = function(bufnr)
+        local buftype = vim.bo[bufnr].buftype
+        if buftype == "terminal" then
+          return "buftype"
+        else
+          return require("stickybuf").should_auto_pin(bufnr)
+        end
+      end,
+    },
   },
+  -- {
+  --   url = "https://gitlab.com/usmcamp0811/nvim-julia-autotest.git",
+  --   opts = {},
+  -- },
 }

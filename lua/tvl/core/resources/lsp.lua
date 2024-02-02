@@ -95,13 +95,12 @@ return {
 
   -- formatters
   {
-    "jose-elias-alvarez/null-ls.nvim",
+    "nvimtools/none-ls.nvim",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = { "mason.nvim" },
     config = function()
       local null_ls = require("null-ls")
       local formatting = null_ls.builtins.formatting
-      local diagnostics = null_ls.builtins.diagnostics
       null_ls.setup({
         debug = false,
         -- You can then register sources by passing a sources list into your setup function:
@@ -110,6 +109,7 @@ return {
           formatting.prettier,
           formatting.stylua,
           formatting.markdownlint,
+          formatting.latexindent,
         },
       })
     end,
@@ -117,6 +117,10 @@ return {
 
   {
     "jay-babu/mason-null-ls.nvim",
+    dependencies = {
+      "williamboman/mason.nvim",
+      "nvimtools/none-ls.nvim",
+    },
     event = { "BufReadPre", "BufNewFile" },
     opts = {
       ensure_installed = {
@@ -127,5 +131,27 @@ return {
       },
       automatic_setup = true,
     },
+  },
+
+  {
+    "lervag/vimtex",
+    lazy = false,
+    init = function()
+      vim.g.vimtex_view_method = "skim"
+      vim.g.vimtex_compiler_method = "latexmk"
+      vim.g.vimtex_compiler_latexmk = {
+        aux_dir = "build",
+        out_dir = "build",
+      }
+      vim.g.vimtex_compiler_latexmk_engines = {
+        ["_"] = "-lualatex",
+      }
+      vim.cmd[[
+          augroup vimtex_event_focus
+            au!
+            au User VimtexEventViewReverse silent execute "!open -a kitty"
+          augroup END
+      ]]
+    end,
   },
 }

@@ -28,9 +28,24 @@ return {
   {
     "moll/vim-bbye",
     event = { "BufRead" },
-    keys = { { "<leader>d", "<cmd>Bdelete!<cr>", desc = "Close Buffer" } },
+    keys = { { "<leader>d", "<cmd>Bdelete!<cr>", desc = "Close buffer" } },
   },
-
+  {
+    "natecraddock/workspaces.nvim",
+    opts = {
+      hooks = {
+        open = "Telescope find_files",
+      },
+    },
+    cmd = { "WorkspacesAdd", "WorkspacesRemove", "WorkspacesList", "WorkspacesOpen" },
+    keys = {
+      { "<leader>fw", ":Telescope workspaces<cr>", desc = "Find workspaces" },
+      { "<leader>Qo", ":WorkspacesOpen<cr>", desc = "Open workspaces" },
+      { "<leader>Qa", ":WorkspacesAdd<cr>", desc = "Add current workspace" },
+      { "<leader>Qr", ":WorkspacesRemove<cr>", desc = "Remove current workspace" },
+      { "<leader>Ql", ":WorkspacesList<cr>", desc = "List workspaces" },
+    },
+  },
   {
     "folke/persistence.nvim",
     event = "BufReadPre",
@@ -43,21 +58,21 @@ return {
         function()
           require("persistence").load()
         end,
-        desc = "Restore Session",
+        desc = "Restore session",
       },
       {
         "<leader>ql",
         function()
           require("persistence").load({ last = true })
         end,
-        desc = "Restore Last Session",
+        desc = "Restore last session",
       },
       {
         "<leader>qd",
         function()
           require("persistence").stop()
         end,
-        desc = "Don't Save Current Session",
+        desc = "Don't save current session",
       },
     },
   },

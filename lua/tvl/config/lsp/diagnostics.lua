@@ -1,4 +1,3 @@
-local Util = require("tvl.util")
 vim.g.diagnostics_enabled = true
 
 local diagnostics = {
@@ -21,8 +20,7 @@ local diagnostics = {
     float = {
       focusable = false,
       style = "minimal",
-      -- border = "rounded",
-      border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
+      border = "rounded",
       source = "always",
       header = "",
       prefix = "",

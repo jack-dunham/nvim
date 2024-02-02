@@ -13,7 +13,7 @@ local options = {
   grepformat = "%f:%l:%c:%m",
   grepprg = "rg --vimgrep",
   mouse = "a", -- allow the mouse to be used in neovim
-  mousefocus = true,
+  mousefocus = false,
   pumheight = 10, -- pop up menu height
   showmode = false, -- we don't need to see things like -- INSERT -- anymore
   showtabline = 2, -- always show tabs
@@ -50,6 +50,7 @@ local options = {
   titlestring = "%<%F%=%l/%L - nvim",
   linespace = 8,
   mousemoveevent = false,
+  mousescroll = "ver:1,hor:0", -- prevent horizontal scrolling
   syntax = "off",
   spelllang = { "en" },
   -- use fold
@@ -71,7 +72,7 @@ local options = {
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
 vim.g.mapleader = " "
-vim.g.maplocalleader = " "
+vim.g.maplocalleader = "\\"
 
 vim.opt.shortmess:append("c")
 

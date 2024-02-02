@@ -49,7 +49,7 @@ return {
     Number = " ",
     Object = " ",
     Operator = " ",
-    Package = " ",
+    package = " ",
     Property = " ",
     Reference = " ",
     Snippet = " ",

@@ -3,6 +3,38 @@ local Icons = require("tvl.core.icons")
 
 return {
   {
+    "stevearc/oil.nvim",
+    keys = {
+      { "<leader>F", ":Oil --float . <cr>", desc = "File explorer" },
+    },
+    opts = {
+      delete_to_trash = true,
+      columns = {
+        "icon",
+        -- "permissions",
+        -- "size",
+        -- "mtime",
+      },
+      view_options = {
+        show_hidden = true,
+      },
+    },
+  },
+  -- {
+  --   "echasnovski/mini.files",
+  --   version = "*",
+  --   lazy = false,
+  --   keys = {
+  --     { "<leader>F", ":lua MiniFiles.open()<cr>", desc = "File explorer" },
+  --   },
+  --   opts = {
+  --     options = {
+  --       permanent_delete = false,
+  --       use_as_default_explorer = true,
+  --     },
+  --   },
+  -- },
+  {
     "nvim-neo-tree/neo-tree.nvim",
     cmd = "Neotree",
     branch = "v3.x",
@@ -15,30 +47,25 @@ return {
       {
         "<leader>e",
         function()
-          require("neo-tree.command").execute({ toggle = true, position = "left", dir = require("tvl.util").get_root() })
+          require("neo-tree.command").execute({
+            actions = "focus",
+            position = "left",
+            dir = require("tvl.util").get_root(),
+          })
         end,
-        desc = "Explorer (root dir)",
-        remap = true,
+        desc = "Focus file tree",
       },
       {
         "<leader>E",
         function()
           require("neo-tree.command").execute({
+            action = "show",
             toggle = true,
-            position = "float",
-            dir = Util.get_root(),
+            position = "left",
+            dir = require("tvl.util").get_root(),
           })
         end,
-        desc = "Explorer Float (root dir)",
-      },
-      {
-        "<leader>-",
-        function()
-          require("neo-tree.command").execute({
-            action = "focus",
-          })
-        end,
-        desc = "(Un)focus tree",
+        desc = "Toggle file tree",
       },
     },
     init = function()
@@ -51,35 +78,37 @@ return {
       end
     end,
     opts = {
+      open_files_do_not_replace_types = { "terminal", "Trouble", "qf", "e  edgy" },
       close_if_last_window = true, -- Close Neo-tree if it is the last window left in the tab
-      popup_border_style = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
+      -- popup_border_style = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"),
       sources = {
         "filesystem",
         "buffers",
         "git_status",
+        "document_symbols",
       },
       -- source_selector provides clickable tabs to switch between sources.
-      source_selector = {
-        winbar = true, -- toggle to show selector on winbar
-        content_layout = "center",
-        tabs_layout = "equal",
-        show_separator_on_edge = true,
-        sources = {
-          {
-            source = "filesystem",
-            display_name = "󰉓",
-          },
-          {
-            source = "buffers",
-            display_name = "󰈙",
-          },
-          {
-            source = "git_status",
-            display_name = "󰊢",
-          },
-          -- diagnostics = "󰒡",
-        },
-      },
+      -- source_selector = {
+      --   winbar = false, -- toggle to show selector on winbar
+      --   content_layout = "center",
+      --   tabs_layout = "equal",
+      --   show_separator_on_edge = true,
+      --   sources = {
+      --     {
+      --       source = "filesystem",
+      --       display_name = "󰉓",
+      --     },
+      --     {
+      --       source = "buffers",
+      --       display_name = "󰈙",
+      --     },
+      --     {
+      --       source = "git_status",
+      --       display_name = "󰊢",
+      --     },
+      --     -- diagnostics = "󰒡",
+      --   },
+      -- },
 
       default_component_configs = {
         indent = {
@@ -113,8 +142,11 @@ return {
         mappings = {
           ["<1-LeftMouse>"] = "open",
           ["l"] = "open",
-          ["<leader>-"] = function()
+          ["<bs>"] = function()
             vim.api.nvim_command("wincmd p")
+          end,
+          ["<leader>e"] = function()
+            require("edgy").goto_main()
           end,
         },
       },
@@ -122,8 +154,8 @@ return {
         window = {
           mappings = {
             ["H"] = "navigate_up",
-            ["<bs>"] = "toggle_hidden",
-            ["."] = "set_root",
+            ["."] = "toggle_hidden",
+            [","] = "set_root",
             ["/"] = "fuzzy_finder",
             ["f"] = "filter_on_submit",
             ["<c-x>"] = "clear_filter",
@@ -149,22 +181,14 @@ return {
     version = false, -- telescope did only one release, so use HEAD for now
     opts = {
       defaults = {
+        -- mappings = {
+        --   i = {
+        --     ["<esc>"] = "close",
+        --   },
+        -- },
         prompt_prefix = "   ",
         selection_caret = "  ",
         entry_prefix = "   ",
-        -- borderchars = {
-        --   prompt = Util.generate_borderchars(
-        --     "thick",
-        --     nil,
-        --     { top = "█", top_left = "█", left = "█", right = " ", top_right = " ", bottom_right = " " }
-        --   ),
-        --   results = Util.generate_borderchars(
-        --     "thick",
-        --     nil,
-        --     { top = "█", top_left = "█", right = " ", top_right = " ", bottom_right = " " }
-        --   ),
-        --   preview = Util.generate_borderchars("thick", nil, { top = "█", top_left = "█", top_right = "█" }),
-        -- },
         dynamic_preview_title = true,
         hl_result_eol = true,
         sorting_strategy = "ascending",
@@ -219,6 +243,7 @@ return {
           "%.epub",
           "%.flac",
           "%.tar.gz",
+          "lazy-lock.json",
         },
         results_title = "",
         layout_config = {
@@ -242,15 +267,15 @@ return {
       { "gr", "<cmd>Telescope lsp_references<cr>", desc = "Go to references" },
       { "gi", "<cmd>Telescope lsp_implementations<cr>", desc = "Go to implementations" },
       -- search
-      { "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
-      { "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Colorscheme" },
+      { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find buffers" },
+      { "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Find colorschemes" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Find help" },
-      { "<leader>fM", "<cmd>Telescope man_pages<cr>", desc = "Man pages" },
+      { "<leader>fM", "<cmd>Telescope man_pages<cr>", desc = "Find man pages" },
       { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Open recent file" },
-      { "<leader>fR", "<cmd>Telescope registers<cr>", desc = "Registers" },
-      { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Keymaps" },
-      { "<leader>fC", "<cmd>Telescope commands<cr>", desc = "Commands" },
-      { "<leader>fH", "<cmd>Telescope highlights<cr>", desc = "Highlight groups" },
+      { "<leader>fR", "<cmd>Telescope registers<cr>", desc = "Find registers" },
+      { "<leader>fk", "<cmd>Telescope keymaps<cr>", desc = "Find keymaps" },
+      { "<leader>fC", "<cmd>Telescope commands<cr>", desc = "Find commands" },
+      { "<leader>fH", "<cmd>Telescope highlights<cr>", desc = "Find highlight groups" },
       -- Git
       { "<leader>go", "<cmd>Telescope git_status<cr>", desc = "Open changed file" },
       { "<leader>gb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
@@ -259,9 +284,14 @@ return {
       -- { "<leader>f",  "<cmd>lua require('telescope.builtin').find_files()<cr>", desc = "Find files" },
       { "<leader><leader>", Util.telescope("find_files"), desc = "Find files" },
       -- { "<leader>F",  "<cmd>Telescope live_grep<cr>",                           desc = "Find Text" },
-      { "<leader>/", Util.telescope("live_grep"), desc = "Find text" },
+      { "<leader>/", Util.telescope("live_grep"), desc = "Live grep" },
     },
     -- config = function() require("tvl.config.telescope") end,
+  },
+
+  {
+    "benfowler/telescope-luasnip.nvim",
+    module = "telescope._extensions.luasnip", -- if you wish to lazy-load
   },
 
   {
@@ -287,15 +317,19 @@ return {
       local wk = require("which-key")
       wk.setup(opts)
       local keymaps = {
-        ["<leader>h"] = { "<cmd>nohlsearch<CR>", "No highlight" },
-        ["<leader>`"] = { "<c-6>", "Navigate previous buffer" },
+        ["<leader>z"] = { name = "+Snippets" },
+        ["<leader>s"] = { name = "+Search/Replace" },
         ["<leader>g"] = { name = "+Git" },
         ["<leader>c"] = { name = "+Code" },
-        ["<leader>q"] = { name = "+Session" },
+        ["<leader>q"] = { name = "+Sessions" },
+        ["<leader>Q"] = { name = "+Workspaces" },
         ["<leader>f"] = { name = "+Find" },
-        ["<leader><tab>"] = { name = "+Tab" },
-        ["g"] = { name = "+Goto" },
+        ["<leader>u"] = { name = "+Toggle" },
+        ["<leader><tab>"] = { name = "+Tabs" },
+        ["<leader>r"] = { name = "+REPL" },
         ["<leader>P"] = { ":Lazy<cr>", "Plugins" },
+        ["g"] = { name = "+Goto" },
+        ["<localleader>l"] = { name = "+LaTeX" },
       }
       wk.register(keymaps)
     end,
@@ -318,12 +352,11 @@ return {
         delay = 300,
       },
       current_line_blame_formatter = "<author>, <author_time:%Y-%m-%d> - <summary>",
-      preview_config = {
-        border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"), -- [ top top top - right - bottom bottom bottom - left ]
-      },
+      -- preview_config = {
+      --   border = Util.generate_borderchars("thick", "tl-t-tr-r-bl-b-br-l"), -- [ top top top - right - bottom bottom bottom - left ]
+      -- },
     },
     keys = {
-      { "<leader>gg", "<cmd>lua _LAZYGIT_TOGGLE()<CR>", desc = "Lazygit" },
       { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk()<cr>", desc = "Next hunk" },
       { "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", desc = "Prev hunk" },
       { "<leader>gl", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
@@ -487,32 +520,146 @@ return {
   },
 
   {
-    "ggandor/flit.nvim",
-    keys = function()
-      ---@type LazyKeys[]
-      local ret = {}
-      for _, key in ipairs({ "f", "F", "t", "T" }) do
-        ret[#ret + 1] = { key, mode = { "n", "x", "o" }, desc = key }
-      end
-      return ret
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    config = function()
+      vim.api.nvim_set_hl(0, "FlashLabel", { fg = "#FFFFFF", bg = "#000000" })
     end,
-    opts = { labeled_modes = "nx" },
+    keys = {
+      {
+        "s",
+        mode = { "n", "x", "o" },
+        function()
+          require("flash").jump()
+        end,
+        desc = "Flash",
+      },
+      {
+        "S",
+        mode = { "n", "x", "o" },
+        function()
+          require("flash").treesitter()
+        end,
+        desc = "Flash Treesitter",
+      },
+      {
+        "r",
+        mode = "o",
+        function()
+          require("flash").remote()
+        end,
+        desc = "Remote Flash",
+      },
+      {
+        "R",
+        mode = { "o", "x" },
+        function()
+          require("flash").treesitter_search()
+        end,
+        desc = "Treesitter Search",
+      },
+      {
+        "<c-s>",
+        mode = { "c" },
+        function()
+          require("flash").toggle()
+        end,
+        desc = "Toggle Flash Search",
+      },
+    },
+  },
+  -- {
+  --   "ggandor/flit.nvim",
+  --   keys = function()
+  --     ---@type LazyKeys[]
+  --     local ret = {}
+  --     for _, key in ipairs({ "f", "F", "t", "T" }) do
+  --       ret[#ret + 1] = { key, mode = { "n", "x", "o" }, desc = key }
+  --     end
+  --     return ret
+  --   end,
+  --   opts = { labeled_modes = "nx" },
+  -- },
+  -- {
+  --   "ggandor/leap.nvim",
+  --   keys = {
+  --     { "s", mode = { "n", "x", "o" }, desc = "Leap forward to" },
+  --     { "S", mode = { "n", "x", "o" }, desc = "Leap backward to" },
+  --     { "gs", mode = { "n", "x", "o" }, desc = "Leap from windows" },
+  --   },
+  --   config = function(_, opts)
+  --     local leap = require("leap")
+  --     for k, v in pairs(opts) do
+  --       leap.opts[k] = v
+  --     end
+  --     leap.add_default_mappings(true)
+  --     vim.keymap.del({ "x", "o" }, "x")
+  --     vim.keymap.del({ "x", "o" }, "X")
+  --   end,
+  -- },
+  {
+    "rasulomaroff/reactive.nvim",
+    enabled = false,
+    config = true,
+  },
+  -- {
+  --   "rasulomaroff/telepath.nvim",
+  --   dependencies = "ggandor/leap.nvim",
+  --   -- there's no sence in using lazy loading since telepath won't load the main module
+  --   -- until you actually use mappings
+  --   lazy = false,
+  --   config = function()
+  --     require("telepath").use_default_mappings()
+  --   end,
+  -- },
+  {
+    "hedyhli/outline.nvim",
+    keys = {
+      {
+        [[<leader>O]],
+        "<cmd>Outline!<CR>",
+        desc = "Toggle outline",
+      },
+      {
+        [[<leader>o]],
+        "<cmd>OutlineFocusOrOpen<CR>",
+        desc = "Focus outline",
+      },
+    },
+    config = function()
+      local outline = require("outline")
+      local function focus_or_open()
+        if outline.is_open() then
+          outline.focus_outline()
+        else
+          outline.open()
+        end
+      end
+      vim.api.nvim_create_user_command("OutlineFocusOrOpen", function()
+        focus_or_open()
+      end, {})
+      require("outline").setup({
+        symbols = {
+          icon_fetcher = function(k)
+            return require("tvl.core.icons").kinds[k]
+          end,
+        },
+      })
+    end,
   },
   {
-    "ggandor/leap.nvim",
+    "nvim-pack/nvim-spectre",
+    cmd = "Spectre",
     keys = {
-      { "s", mode = { "n", "x", "o" }, desc = "Leap forward to" },
-      { "S", mode = { "n", "x", "o" }, desc = "Leap backward to" },
-      { "gs", mode = { "n", "x", "o" }, desc = "Leap from windows" },
+      { "<leader>S", '<cmd>lua require("spectre").toggle()<CR>', desc = "Search and replace" },
+      { "<leader>sw", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', desc = "Search current word" },
+      { "<leader>sw", '<esc><cmd>lua require("spectre").open_visual()<CR>', desc = "Search current word", mode = "v" },
+      {
+        "<leader>sp",
+        '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>',
+        desc = "Search on current file",
+      },
+      config = true,
     },
-    config = function(_, opts)
-      local leap = require("leap")
-      for k, v in pairs(opts) do
-        leap.opts[k] = v
-      end
-      leap.add_default_mappings(true)
-      vim.keymap.del({ "x", "o" }, "x")
-      vim.keymap.del({ "x", "o" }, "X")
-    end,
   },
 }
