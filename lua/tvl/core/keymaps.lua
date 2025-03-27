@@ -1,4 +1,5 @@
 local Util = require("tvl.util")
+local Snacks = require("snacks")
 --
 local map = Util.map
 
@@ -107,15 +108,38 @@ end, { desc = "[/] Fuzzily search in current buffer]" })
 -- map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 -- map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 
+map("n", "n", "nzz", { desc = "Next search result" })
+map("n", "N", "Nzz", { desc = "Prev search result" })
+map("o", "n", "nzz", { desc = "Next search result" })
+map("o", "N", "Nzz", { desc = "Prev search result" })
+map("x", "n", "nzz", { desc = "Next search result" })
+map("x", "N", "Nzz", { desc = "Prev search result" })
+
 -- stylua: ignore start
 
 -------------------- Toggles -----------------------------
-map("n", "<leader>us", function() Util.toggle("spell") end, { desc = "Toggle spelling" })
-map("n", "<leader>uw", function() Util.toggle("wrap") end, { desc = "Toggle word wrap" })
-map("n", "<leader>ul", function() Util.toggle("relativenumber", true) Util.toggle("number") end, { desc = "Toggle line numbers" })
-map("n", "<leader>ud", Util.toggle_diagnostics, { desc = "Toggle diagnostics" })
-local conceallevel = vim.o.conceallevel > 0 and vim.o.conceallevel or 3
-map("n", "<leader>uc", function() Util.toggle("conceallevel", false, {0, conceallevel}) end, { desc = "Toggle conceal" })
+-- map("n", "<leader>us", function() Util.toggle("spell") end, { desc = "Toggle spelling" })
+-- map("n", "<leader>uw", function() Util.toggle("wrap") end, { desc = "Toggle word wrap" })
+-- map("n", "<leader>ul", function() Util.toggle("relativenumber", true) Util.toggle("number") end, { desc = "Toggle line numbers" })
+-- map("n", "<leader>ud", Util.toggle_diagnostics, { desc = "Toggle diagnostics" })
+-- local conceallevel = vim.o.conceallevel > 0 and vim.o.conceallevel or 3
+-- map("n", "<leader>uc", function() Util.toggle("conceallevel", false, {0, conceallevel}) end, { desc = "Toggle conceal" })
+
+Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>us")
+Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>uw")
+Snacks.toggle.option("relativenumber", { name = "Relative Number" }):map("<leader>uL")
+Snacks.toggle.diagnostics():map("<leader>ud")
+Snacks.toggle.line_number():map("<leader>ul")
+Snacks.toggle.option("conceallevel", { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2, name = "Conceal Level" }):map("<leader>uc")
+Snacks.toggle.option("showtabline", { off = 0, on = vim.o.showtabline > 0 and vim.o.showtabline or 2, name = "Tabline" }):map("<leader>uA")
+Snacks.toggle.treesitter():map("<leader>uT")
+Snacks.toggle.option("background", { off = "light", on = "dark" , name = "Dark Background" }):map("<leader>ub")
+Snacks.toggle.dim():map("<leader>uD")
+Snacks.toggle.animate():map("<leader>ua")
+Snacks.toggle.indent():map("<leader>ug")
+Snacks.toggle.scroll():map("<leader>uS")
+Snacks.toggle.profiler():map("<leader>dpp")
+Snacks.toggle.profiler_highlights():map("<leader>dph")
 
 -------------------- Tabs -----------------------------
 map("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last tab" })

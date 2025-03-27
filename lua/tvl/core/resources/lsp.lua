@@ -106,52 +106,10 @@ return {
         -- You can then register sources by passing a sources list into your setup function:
         -- using `with()`, which modifies a subset of the source's default options
         sources = {
-          formatting.prettier,
           formatting.stylua,
-          formatting.markdownlint,
           formatting.latexindent,
         },
       })
-    end,
-  },
-
-  {
-    "jay-babu/mason-null-ls.nvim",
-    dependencies = {
-      "williamboman/mason.nvim",
-      "nvimtools/none-ls.nvim",
-    },
-    event = { "BufReadPre", "BufNewFile" },
-    opts = {
-      ensure_installed = {
-        "prettier",
-        "stylua",
-        "markdownlint",
-        "beautysh",
-      },
-      automatic_setup = true,
-    },
-  },
-
-  {
-    "lervag/vimtex",
-    lazy = false,
-    init = function()
-      vim.g.vimtex_view_method = "skim"
-      vim.g.vimtex_compiler_method = "latexmk"
-      vim.g.vimtex_compiler_latexmk = {
-        aux_dir = "build",
-        out_dir = "build",
-      }
-      vim.g.vimtex_compiler_latexmk_engines = {
-        ["_"] = "-lualatex",
-      }
-      vim.cmd[[
-          augroup vimtex_event_focus
-            au!
-            au User VimtexEventViewReverse silent execute "!open -a kitty"
-          augroup END
-      ]]
     end,
   },
 }

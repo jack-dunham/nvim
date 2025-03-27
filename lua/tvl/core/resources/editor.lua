@@ -20,20 +20,6 @@ return {
       },
     },
   },
-  -- {
-  --   "echasnovski/mini.files",
-  --   version = "*",
-  --   lazy = false,
-  --   keys = {
-  --     { "<leader>F", ":lua MiniFiles.open()<cr>", desc = "File explorer" },
-  --   },
-  --   opts = {
-  --     options = {
-  --       permanent_delete = false,
-  --       use_as_default_explorer = true,
-  --     },
-  --   },
-  -- },
   {
     "nvim-neo-tree/neo-tree.nvim",
     cmd = "Neotree",
@@ -317,21 +303,21 @@ return {
       local wk = require("which-key")
       wk.setup(opts)
       local keymaps = {
-        ["<leader>z"] = { name = "+Snippets" },
-        ["<leader>s"] = { name = "+Search/Replace" },
-        ["<leader>g"] = { name = "+Git" },
-        ["<leader>c"] = { name = "+Code" },
-        ["<leader>q"] = { name = "+Sessions" },
-        ["<leader>Q"] = { name = "+Workspaces" },
-        ["<leader>f"] = { name = "+Find" },
-        ["<leader>u"] = { name = "+Toggle" },
-        ["<leader><tab>"] = { name = "+Tabs" },
-        ["<leader>r"] = { name = "+REPL" },
-        ["<leader>P"] = { ":Lazy<cr>", "Plugins" },
-        ["g"] = { name = "+Goto" },
-        ["<localleader>l"] = { name = "+LaTeX" },
+        { "<leader><tab>", group = "Tabs" },
+        { "<leader>P", ":Lazy<cr>", desc = "Plugins" },
+        { "<leader>Q", group = "Workspaces" },
+        { "<leader>c", group = "Code" },
+        { "<leader>f", group = "Find" },
+        { "<leader>g", group = "Git" },
+        { "<leader>q", group = "Sessions" },
+        { "<leader>r", group = "REPL" },
+        { "<leader>s", group = "Search/Replace" },
+        { "<leader>u", group = "Toggle" },
+        { "<leader>z", group = "Snippets" },
+        { "<localleader>l", group = "LaTeX" },
+        { "g", group = "Goto" },
       }
-      wk.register(keymaps)
+      wk.add(keymaps)
     end,
   },
 
@@ -568,50 +554,11 @@ return {
       },
     },
   },
-  -- {
-  --   "ggandor/flit.nvim",
-  --   keys = function()
-  --     ---@type LazyKeys[]
-  --     local ret = {}
-  --     for _, key in ipairs({ "f", "F", "t", "T" }) do
-  --       ret[#ret + 1] = { key, mode = { "n", "x", "o" }, desc = key }
-  --     end
-  --     return ret
-  --   end,
-  --   opts = { labeled_modes = "nx" },
-  -- },
-  -- {
-  --   "ggandor/leap.nvim",
-  --   keys = {
-  --     { "s", mode = { "n", "x", "o" }, desc = "Leap forward to" },
-  --     { "S", mode = { "n", "x", "o" }, desc = "Leap backward to" },
-  --     { "gs", mode = { "n", "x", "o" }, desc = "Leap from windows" },
-  --   },
-  --   config = function(_, opts)
-  --     local leap = require("leap")
-  --     for k, v in pairs(opts) do
-  --       leap.opts[k] = v
-  --     end
-  --     leap.add_default_mappings(true)
-  --     vim.keymap.del({ "x", "o" }, "x")
-  --     vim.keymap.del({ "x", "o" }, "X")
-  --   end,
-  -- },
   {
     "rasulomaroff/reactive.nvim",
     enabled = false,
     config = true,
   },
-  -- {
-  --   "rasulomaroff/telepath.nvim",
-  --   dependencies = "ggandor/leap.nvim",
-  --   -- there's no sence in using lazy loading since telepath won't load the main module
-  --   -- until you actually use mappings
-  --   lazy = false,
-  --   config = function()
-  --     require("telepath").use_default_mappings()
-  --   end,
-  -- },
   {
     "hedyhli/outline.nvim",
     keys = {

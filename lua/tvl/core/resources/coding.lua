@@ -13,7 +13,7 @@ return {
     event = "InsertEnter",
     enabled = true,
     opts = {
-      tabkey = "",
+      tabkey = "<Tab>",
       act_as_tab = true,
     },
   },
@@ -67,64 +67,168 @@ return {
       },
     },
   },
-
   {
-    "chrisgrieser/nvim-scissors",
-    dependencies = "nvim-telescope/telescope.nvim",
-    opts = { jsonFormatter = "jq" },
-    keys = {
+    "saghen/blink.cmp",
+    version = "*",
+    build = "cargo build --release",
+    opts_extend = {
+      "sources.completion.enabled_providers",
+      "sources.compat",
+      "sources.default",
+    },
+    dependencies = {
+      "rafamadriz/friendly-snippets",
+      -- add blink.compat to dependencies
       {
-        "<leader>za",
-        function()
-          require("scissors").addNewSnippet()
-        end,
-        desc = "Add new snippet",
-        mode = { "n", "x" },
-      },
-      {
-        "<leader>ze",
-        function()
-          require("scissors").editSnippet()
-        end,
-        desc = "Edit snippet",
+        "saghen/blink.compat",
+        optional = true, -- make optional so it's only enabled if any extras need it
+        opts = {},
+        version = not vim.g.lazyvim_blink_main and "*",
       },
     },
-  },
-  {
-    "smjonas/snippet-converter.nvim",
-    -- SnippetConverter uses semantic versioning. Example: use version = "1.*" to avoid breaking changes on version 1.
-    -- Uncomment the next line to follow stable releases only.
-    -- tag = "*",
-    config = function()
-      local template = {
-        -- name = "t1", (optionally give your template a name to refer to it in the `ConvertSnippets` command)
-        sources = {
-          ultisnips = {
-            -- Add snippets from (plugin) folders or individual files on your runtimepath...
-            "~/Downloads/tex.snippets",
-          },
-        },
-        output = {
-          -- Specify the output formats and paths
-          vscode_luasnip = {
-            vim.fn.stdpath("config") .. "/snippets",
-          },
-          snipmate = {
-            vim.fn.stdpath("config") .. "/snipmate",
-          },
-        },
-      }
+    event = "InsertEnter",
 
-      require("snippet_converter").setup({
-        templates = { template },
-        -- To change the default settings (see configuration section in the documentation)
-        -- settings = {},
-      })
+    ---@module 'blink.cmp'
+    ---@type blink.cmp.Config
+    opts = {
+      snippets = {
+        expand = function(snippet, _)
+          return require("tvl.cmp").expand(snippet)
+        end,
+      },
+      appearance = {
+        -- sets the fallback highlight groups to nvim-cmp's highlight groups
+        -- useful for when your theme doesn't support blink.cmp
+        -- will be removed in a future release, assuming themes add support
+        use_nvim_cmp_as_default = false,
+        -- set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+        -- adjusts spacing to ensure icons are aligned
+        nerd_font_variant = "mono",
+        kind_icons = require("tvl.core.icons").kinds,
+      },
+      completion = {
+        accept = {
+          -- experimental auto-brackets support
+          auto_brackets = {
+            enabled = true,
+          },
+        },
+        menu = {
+          draw = {
+            treesitter = { "lsp" },
+          },
+        },
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 200,
+        },
+        ghost_text = {
+          enabled = vim.g.ai_cmp,
+        },
+      },
+
+      -- experimental signature help support
+      -- signature = { enabled = true },
+
+      sources = {
+        -- adding any nvim-cmp sources here will enable them
+        -- with blink.compat
+        compat = {},
+        default = { "lsp", "path", "snippets", "buffer" },
+        cmdline = {},
+      },
+
+      keymap = {
+        preset = "super-tab",
+        ["<C-k>"] = { "select_prev", "fallback" },
+        ["<C-j>"] = { "select_next", "fallback" },
+        ["<Tab>"] = {
+          function(cmp)
+            if cmp.snippet_active() then
+              return cmp.accept()
+            else
+              return cmp.select_and_accept()
+            end
+          end,
+          "snippet_forward",
+          -- function(_)
+          --   require("neotab").tabout()
+          -- end,
+          "fallback",
+        },
+        ["<S-Tab>"] = { "cancel", "hide" },
+      },
+    },
+    ---@param opts blink.cmp.Config | { sources: { compat: string[] } }
+    config = function(_, opts)
+      local tvl_cmp = require("tvl.cmp")
+      -- setup compat sources
+      local enabled = opts.sources.default
+      for _, source in ipairs(opts.sources.compat or {}) do
+        opts.sources.providers[source] = vim.tbl_deep_extend(
+          "force",
+          { name = source, module = "blink.compat.source" },
+          opts.sources.providers[source] or {}
+        )
+        if type(enabled) == "table" and not vim.tbl_contains(enabled, source) then
+          table.insert(enabled, source)
+        end
+      end
+
+      -- add ai_accept to <Tab> key
+      if not opts.keymap["<Tab>"] then
+        if opts.keymap.preset == "super-tab" then -- super-tab
+          opts.keymap["<Tab>"] = {
+            require("blink.cmp.keymap.presets")["super-tab"]["<Tab>"][1],
+            tvl_cmp.map({ "snippet_forward", "ai_accept" }),
+            "fallback",
+          }
+        else -- other presets
+          opts.keymap["<Tab>"] = {
+            tvl_cmp.map({ "snippet_forward", "ai_accept" }),
+            "fallback",
+          }
+        end
+      end
+
+      -- Unset custom prop to pass blink.cmp validation
+      opts.sources.compat = nil
+
+      -- check if we need to override symbol kinds
+      for _, provider in pairs(opts.sources.providers or {}) do
+        ---@cast provider blink.cmp.SourceProviderConfig|{kind?:string}
+        if provider.kind then
+          local CompletionItemKind = require("blink.cmp.types").CompletionItemKind
+          local kind_idx = #CompletionItemKind + 1
+
+          CompletionItemKind[kind_idx] = provider.kind
+          ---@diagnostic disable-next-line: no-unknown
+          CompletionItemKind[provider.kind] = kind_idx
+
+          ---@type fun(ctx: blink.cmp.Context, items: blink.cmp.CompletionItem[]): blink.cmp.CompletionItem[]
+          local transform_items = provider.transform_items
+          ---@param ctx blink.cmp.Context
+          ---@param items blink.cmp.CompletionItem[]
+          provider.transform_items = function(ctx, items)
+            items = transform_items and transform_items(ctx, items) or items
+            for _, item in ipairs(items) do
+              item.kind = kind_idx or item.kind
+            end
+            return items
+          end
+
+          -- Unset custom prop to pass blink.cmp validation
+          provider.kind = nil
+        end
+      end
+
+      require("blink.cmp").setup(opts)
     end,
   },
   {
     "hrsh7th/nvim-cmp",
     version = false,
+    enabled = false,
     event = { "InsertEnter", "CmdlineEnter" },
     dependencies = {
       "hrsh7th/cmp-nvim-lsp",
@@ -237,10 +341,6 @@ return {
   },
   {
     "echasnovski/mini.ai",
-    -- keys = {
-    --   { "a", mode = { "x", "o" } },
-    --   { "i", mode = { "x", "o" } },
-    -- },
     event = "VeryLazy",
     dependencies = { "nvim-treesitter-textobjects" },
     opts = function()
@@ -248,58 +348,95 @@ return {
       return {
         n_lines = 500,
         custom_textobjects = {
-          o = ai.gen_spec.treesitter({
+          o = ai.gen_spec.treesitter({ -- code block
             a = { "@block.outer", "@conditional.outer", "@loop.outer" },
             i = { "@block.inner", "@conditional.inner", "@loop.inner" },
-          }, {}),
-          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }, {}),
-          c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }, {}),
+          }),
+          f = ai.gen_spec.treesitter({ a = "@function.outer", i = "@function.inner" }), -- function
+          c = ai.gen_spec.treesitter({ a = "@class.outer", i = "@class.inner" }), -- class
+          t = { "<([%p%w]-)%f[^<%w][^<>]->.-</%1>", "^<.->().*()</[^/]->$" }, -- tags
+          d = { "%f[%d]%d+" }, -- digits
+          e = { -- Word with case
+            { "%u[%l%d]+%f[^%l%d]", "%f[%S][%l%d]+%f[^%l%d]", "%f[%P][%l%d]+%f[^%l%d]", "^[%l%d]+%f[^%l%d]" },
+            "^().*()$",
+          },
+          g = function(ai_type)
+            local start_line, end_line = 1, vim.fn.line("$")
+            if ai_type == "i" then
+              -- Skip first and last blank lines for `i` textobject
+              local first_nonblank, last_nonblank = vim.fn.nextnonblank(start_line), vim.fn.prevnonblank(end_line)
+              -- Do nothing for buffer with all blanks
+              if first_nonblank == 0 or last_nonblank == 0 then
+                return { from = { line = start_line, col = 1 } }
+              end
+              start_line, end_line = first_nonblank, last_nonblank
+            end
+
+            local to_col = math.max(vim.fn.getline(end_line):len(), 1)
+            return { from = { line = start_line, col = 1 }, to = { line = end_line, col = to_col } }
+          end,
+          u = ai.gen_spec.function_call(), -- u for "Usage"
+          U = ai.gen_spec.function_call({ name_pattern = "[%w_]" }), -- without dot in function name
         },
       }
     end,
     config = function(_, opts)
       require("mini.ai").setup(opts)
-      -- register all text objects with which-key
-      ---@type table<string, string|table>
-      local i = {
-        [" "] = "Whitespace",
-        ['"'] = 'Balanced "',
-        ["'"] = "Balanced '",
-        ["`"] = "Balanced `",
-        ["("] = "Balanced (",
-        [")"] = "Balanced ) including white-space",
-        [">"] = "Balanced > including white-space",
-        ["cltc"] = "Balanced <",
-        ["]"] = "Balanced ] including white-space",
-        ["["] = "Balanced [",
-        ["}"] = "Balanced } including white-space",
-        ["{"] = "Balanced {",
-        ["?"] = "User Prompt",
-        _ = "Underscore",
-        a = "Argument",
-        b = "Balanced ), ], }",
-        c = "Class",
-        f = "Function",
-        o = "Block, conditional, loop",
-        q = "Quote `, \", '",
-        t = "Tag",
+      local objects = {
+        { " ", desc = "whitespace" },
+        { '"', desc = '" string' },
+        { "'", desc = "' string" },
+        { "(", desc = "() block" },
+        { ")", desc = "() block with ws" },
+        { "<", desc = "<> block" },
+        { ">", desc = "<> block with ws" },
+        { "?", desc = "user prompt" },
+        { "U", desc = "use/call without dot" },
+        { "[", desc = "[] block" },
+        { "]", desc = "[] block with ws" },
+        { "_", desc = "underscore" },
+        { "`", desc = "` string" },
+        { "a", desc = "argument" },
+        { "b", desc = ")]} block" },
+        { "c", desc = "class" },
+        { "d", desc = "digit(s)" },
+        { "e", desc = "CamelCase / snake_case" },
+        { "f", desc = "function" },
+        { "g", desc = "entire file" },
+        { "i", desc = "indent" },
+        { "o", desc = "block, conditional, loop" },
+        { "q", desc = "quote `\"'" },
+        { "t", desc = "tag" },
+        { "u", desc = "use/call" },
+        { "{", desc = "{} block" },
+        { "}", desc = "{} with ws" },
       }
-      local a = vim.deepcopy(i)
-      for k, v in pairs(a) do
-        a[k] = v:gsub(" including.*", "")
-      end
+      ---@type wk.Spec[]
+      local ret = { mode = { "o", "x" } }
+      ---@type table<string, string>
+      local mappings = vim.tbl_extend("force", {}, {
+        around = "a",
+        inside = "i",
+        around_next = "an",
+        inside_next = "in",
+        around_last = "al",
+        inside_last = "il",
+      }, opts.mappings or {})
+      mappings.goto_left = nil
+      mappings.goto_right = nil
 
-      local ic = vim.deepcopy(i)
-      local ac = vim.deepcopy(a)
-      for key, name in pairs({ n = "Next", l = "Last" }) do
-        i[key] = vim.tbl_extend("force", { name = "Inside " .. name .. " textobject" }, ic)
-        a[key] = vim.tbl_extend("force", { name = "Around " .. name .. " textobject" }, ac)
+      for name, prefix in pairs(mappings) do
+        name = name:gsub("^around_", ""):gsub("^inside_", "")
+        ret[#ret + 1] = { prefix, group = name }
+        for _, obj in ipairs(objects) do
+          local desc = obj.desc
+          if prefix:sub(1, 1) == "i" then
+            desc = desc:gsub(" with ws", "")
+          end
+          ret[#ret + 1] = { prefix .. obj[1], desc = obj.desc }
+        end
       end
-      require("which-key").register({
-        mode = { "o", "x" },
-        i = i,
-        a = a,
-      })
+      require("which-key").add(ret, { notify = false })
     end,
   },
   {
@@ -326,5 +463,14 @@ return {
       { "gzd", desc = "Delete surrounding pair" },
       { "gzr", desc = "Replace surrounding pair" },
     },
+  },
+  {
+    "lervag/vimtex",
+    lazy = false, -- we don't want to lazy load VimTeX
+    -- tag = "v2.15", -- uncomment to pin to a specific release
+    init = function()
+      -- VimTeX configuration goes here, e.g.
+      vim.g.vimtex_view_method = "skim"
+    end,
   },
 }

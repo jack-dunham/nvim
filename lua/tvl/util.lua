@@ -140,7 +140,7 @@ M.capabilities = function(ext)
     "force",
     {},
     ext or {},
-    require("cmp_nvim_lsp").default_capabilities(),
+    require("blink.cmp").get_lsp_capabilities(),
     { textDocument = { foldingRange = { dynamicRegistration = false, lineFoldingOnly = true } } }
   )
 end
@@ -290,6 +290,48 @@ function M.get_visual(args, parent)
     return sn(nil, i(1, ""))
   end
 end
--- local img = require("image")
+
+function M.create_undo()
+  if vim.api.nvim_get_mode().mode == "i" then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<c-G>u", true, true, true), "n", false)
+  end
+end
+
+function M.find_tikzpicture()
+  local top = vim.fn.searchpairpos([[\\begin{tikzpicture}]], "", [[\\end{tikzpicture}]], "ncbW")
+  local bot = vim.fn.searchpairpos([[\\begin{tikzpicture}]], "", [[\\end{tikzpicture}]], "ncW")
+
+  if top[1] > 0 and bot[1] > 0 then
+    local tikzenv = vim.fn.getregion({ 0, top[1], top[2] }, { 0, bot[1], bot[2] + 17 })
+
+    local function getfname()
+      vim.ui.input({ prompt = "TikZ file name: " }, function(input)
+        if input then
+          local fname = vim.fs.joinpath("tikz", input .. ".tikz")
+
+          vim.fn.mkdir("tikz", 'p')
+
+          if vim.fn.filereadable(fname) > 0 then
+            vim.notify("File " .. fname .. " already exists, try a different name", vim.log.levels.WARN)
+            getfname()
+            return
+          end
+
+          vim.fn.writefile(tikzenv, fname)
+          vim.notify("TikZ picture written to " .. fname .. ".", vim.log.levels.INFO, {})
+
+          local topline = vim.api.nvim_buf_get_lines(0, top[1] - 1, top[1], true)[1]
+          local newtop, _ = topline:gsub([[\begin{tikzpicture}.*]], [[\input{]] .. fname .. "}")
+          local newbot, _ = tikzenv[#tikzenv]:gsub([[\end{tikzpicture}]], "")
+
+          vim.api.nvim_buf_set_lines(0, top[1] - 1, bot[1], false, { newtop, newbot })
+        end
+      end)
+    end
+    getfname()
+  else
+    vim.notify("Not in TikZ environment.", vim.log.levels.INFO, {})
+  end
+end
 
 return M

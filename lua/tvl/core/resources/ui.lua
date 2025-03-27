@@ -13,6 +13,7 @@ return {
 
   {
     "akinsho/bufferline.nvim",
+    enabled = true,
     event = { "BufReadPost" },
     opts = {
       options = {
@@ -24,14 +25,15 @@ return {
           end
           return tostring(count)
         end,
-        -- offsets = {
-        --   {
-        --     filetype = "neo-tree",
-        --     text = "EXPLORER",
-        --     text_align = "center",
-        --     -- separator = true,
-        --   },
-        -- },
+        offsets = {
+          {
+            filetype = "neo-tree",
+            text = "EXPLORER",
+            highlight = "Directory",
+            text_align = "left",
+            -- separator = true,
+          },
+        },
         hover = {
           enabled = true,
           delay = 200,
@@ -65,6 +67,7 @@ return {
   {
     "lukas-reineke/indent-blankline.nvim",
     event = { "BufReadPost", "BufNewFile" },
+    enabled = false,
     main = "ibl",
     opts = {
       indent = {
@@ -108,7 +111,7 @@ return {
     "echasnovski/mini.indentscope",
     lazy = true,
     event = "BufEnter",
-    enabled = true,
+    enabled = false,
     -- lazy = true,
     version = false, -- wait till new 0.7.0 release to put it back on semver
     -- event = "BufReadPre",
@@ -301,6 +304,7 @@ return {
 
   {
     "anuvyklack/windows.nvim",
+    enables = false,
     event = "WinNew",
     dependencies = {
       { "anuvyklack/middleclass" },
@@ -496,63 +500,6 @@ return {
     },
   },
   {
-    "echasnovski/mini.animate",
-    enabled = false,
-    version = "*",
-    config = function()
-      local animate = require("mini.animate")
-      local timing = animate.gen_timing.linear({ duration = 50, unit = "total" })
-      local opts = {
-        scroll = {
-          enable = false,
-        },
-        resize = {
-          timing = timing,
-        },
-        open = {
-          timing = timing,
-        },
-        clsoe = {
-          timing = timing,
-        },
-      }
-      animate.setup(opts)
-    end,
-  },
-  {
-    "karb94/neoscroll.nvim",
-    keys = {
-      -- { "<c-d>", Util.lazy_keys("<c-d>zz"), { desc = "Scroll down half screen" } },
-      -- { "<c-u>", Util.lazy_keys("<c-u>zz"), { desc = "Scroll up half screen" } },
-      {
-        "<c-u>",
-        '<cmd>lua vim.api.nvim_command("normal " .. vim.wo.scroll .. "k"); require("neoscroll").zz(220)<cr>',
-        { desc = "Scroll up half screen" },
-      },
-      {
-        "<c-d>",
-        '<cmd>lua vim.api.nvim_command("normal " .. vim.wo.scroll .. "j"); require("neoscroll").zz(220)<cr>',
-        { desc = "Scroll down half screen" },
-      },
-      "zz",
-      "zt",
-      "zb",
-      "G",
-      "gg",
-      "n",
-      "N",
-    },
-    opts = {
-      easing_function = "sine",
-      mappings = { "zz", "zt", "zb", "G", "gg" },
-    },
-    config = function(_, opts)
-      require("neoscroll").setup(opts)
-      vim.keymap.set("n", "n", "(v:searchforward ? 'nzz' : 'Nzz' )", { expr = true, remap = true })
-      vim.keymap.set("n", "N", "(v:searchforward ? 'Nzz' : 'nzz' )", { expr = true, remap = true })
-    end,
-  },
-  {
     "stevearc/stickybuf.nvim",
     opts = {
       get_auto_pin = function(bufnr)
@@ -564,6 +511,74 @@ return {
         end
       end,
     },
+  },
+  {
+    "willothy/flatten.nvim",
+    opts = function()
+      ---@type Terminal?
+      local saved_terminal
+
+      return {
+        window = {
+          open = "alternate",
+        },
+        callbacks = {
+          should_block = function(argv)
+            -- Note that argv contains all the parts of the CLI command, including
+            -- Neovim's path, commands, options and files.
+            -- See: :help v:argv
+
+            -- In this case, we would block if we find the `-b` flag
+            -- This allows you to use `nvim -b file1` instead of
+            -- `nvim --cmd 'let g:flatten_wait=1' file1`
+            return vim.tbl_contains(argv, "-b")
+
+            -- Alternatively, we can block if we find the diff-mode option
+            -- return vim.tbl_contains(argv, "-d")
+          end,
+          pre_open = function()
+            local term = require("toggleterm.terminal")
+            local termid = term.get_focused_id()
+            saved_terminal = term.get(termid)
+          end,
+          post_open = function(bufnr, winnr, ft, is_blocking)
+            if is_blocking and saved_terminal then
+              -- Hide the terminal while it's blocking
+              saved_terminal:close()
+            else
+              -- If it's a normal file, just switch to its window
+              vim.api.nvim_set_current_win(winnr)
+            end
+
+            -- If the file is a git commit, create one-shot autocmd to delete its buffer on write
+            -- If you just want the toggleable terminal integration, ignore this bit
+            if ft == "gitcommit" or ft == "gitrebase" then
+              vim.api.nvim_create_autocmd("BufWritePost", {
+                buffer = bufnr,
+                once = true,
+                callback = vim.schedule_wrap(function()
+                  vim.api.nvim_buf_delete(bufnr, {})
+                end),
+              })
+            end
+          end,
+          block_end = function()
+            -- After blocking ends (for a git commit, etc), reopen the terminal
+            vim.schedule(function()
+              if saved_terminal then
+                saved_terminal:open()
+                saved_terminal = nil
+              end
+            end)
+          end,
+        },
+      }
+    end,
+    -- or pass configuration with
+    -- opts = {  }
+    -- Ensure that it runs first to minimize delay when opening file from terminal
+    lazy = false,
+    priority = 1001,
   },
   -- {
   --   url = "https://gitlab.com/usmcamp0811/nvim-julia-autotest.git",

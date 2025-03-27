@@ -90,6 +90,7 @@ vim.cmd([[set iskeyword+=-]])
 vim.cmd([[set foldopen-=hor]])
 
 if vim.g.neovide then
-  vim.opt.guifont = "Cascadia Code:h10" -- the font used in graphical neovim applications
-  vim.g.neovide_scale_factor = 1
+  vim.opt.guifont = "MesloLGS Nerd Font Mono:h12" -- the font used in graphical neovim applications
+  vim.opt.linespace = 0
+  -- vim.g.neovide_scale_factor = 1
 end

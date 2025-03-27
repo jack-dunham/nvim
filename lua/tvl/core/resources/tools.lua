@@ -5,27 +5,6 @@ return {
   },
 
   {
-    "toppair/peek.nvim",
-    priority = 10,
-    build = "deno task --quiet build:fast",
-    keys = {
-      {
-        "<leader>p",
-        function()
-          local peek = require("peek")
-          if peek.is_open() then
-            peek.close()
-          else
-            peek.open()
-          end
-        end,
-        desc = "Peek (Markdown Preview)",
-      },
-    },
-    opts = { theme = "dark" },
-  },
-
-  {
     "moll/vim-bbye",
     event = { "BufRead" },
     keys = { { "<leader>d", "<cmd>Bdelete!<cr>", desc = "Close buffer" } },
@@ -40,10 +19,10 @@ return {
     cmd = { "WorkspacesAdd", "WorkspacesRemove", "WorkspacesList", "WorkspacesOpen" },
     keys = {
       { "<leader>fw", ":Telescope workspaces<cr>", desc = "Find workspaces" },
-      { "<leader>Qo", ":WorkspacesOpen<cr>", desc = "Open workspaces" },
-      { "<leader>Qa", ":WorkspacesAdd<cr>", desc = "Add current workspace" },
-      { "<leader>Qr", ":WorkspacesRemove<cr>", desc = "Remove current workspace" },
-      { "<leader>Ql", ":WorkspacesList<cr>", desc = "List workspaces" },
+      { "<leader>pp", ":WorkspacesOpen<cr>", desc = "Open workspaces" },
+      { "<leader>pa", ":WorkspacesAdd<cr>", desc = "Add current workspace" },
+      { "<leader>pr", ":WorkspacesRemove<cr>", desc = "Remove current workspace" },
+      { "<leader>pl", ":WorkspacesList<cr>", desc = "List workspaces" },
     },
   },
   {

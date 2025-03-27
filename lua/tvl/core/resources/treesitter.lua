@@ -17,8 +17,9 @@ return {
         "yaml",
         "cpp",
         "julia",
+        "latex",
       },
-      highlight = { enable = true },
+      highlight = { enable = true, },
       indent = { enable = true, disable = { "yaml" } },
       rainbow = {
         enable = false,
