@@ -17,7 +17,15 @@ return {
       act_as_tab = true,
     },
   },
-
+  {
+    "andythigpen/nvim-coverage",
+    version = "*",
+    config = function()
+      require("coverage").setup({
+        auto_reload = true,
+      })
+    end,
+  },
   {
     "L3MON4D3/LuaSnip",
     dependencies = { "neotab.nvim" },
@@ -135,14 +143,17 @@ return {
         -- with blink.compat
         compat = {},
         default = { "lsp", "path", "snippets", "buffer" },
-        cmdline = {},
+      },
+
+      cmdline = {
+        sources = {},
       },
 
       keymap = {
         preset = "super-tab",
         ["<C-k>"] = { "select_prev", "fallback" },
         ["<C-j>"] = { "select_next", "fallback" },
-        ["<Tab>"] = {
+        ["<C-l>"] = {
           function(cmp)
             if cmp.snippet_active() then
               return cmp.accept()
@@ -156,6 +167,7 @@ return {
           -- end,
           "fallback",
         },
+        ["<Tab>"] = { "fallback" },
         ["<S-Tab>"] = { "cancel", "hide" },
       },
     },
@@ -471,6 +483,15 @@ return {
     init = function()
       -- VimTeX configuration goes here, e.g.
       vim.g.vimtex_view_method = "skim"
+      vim.g.vimtex_compiler_latexmk = {
+        options = {
+          "-shell-escape",
+          "-verbose",
+          "-file-line-error",
+          "-synctex=1",
+          "-interaction=nonstopmode",
+        },
+      }
     end,
   },
 }

@@ -4,6 +4,7 @@ local Icon = require("tvl.core.icons")
 return {
   {
     "j-hui/fidget.nvim",
+    enabled = false,
     opts = {
       notification = {
         override_vim_notify = true,
@@ -13,7 +14,7 @@ return {
 
   {
     "akinsho/bufferline.nvim",
-    enabled = true,
+    enabled = false,
     event = { "BufReadPost" },
     opts = {
       options = {
@@ -138,9 +139,24 @@ return {
       require("mini.indentscope").setup(opts)
     end,
   },
-
+  {
+    "Bekaboo/dropbar.nvim",
+    enabled = true,
+    -- optional, but required for fuzzy finder support
+    dependencies = {
+      "nvim-telescope/telescope-fzf-native.nvim",
+      build = "make",
+    },
+    config = function()
+      local dropbar_api = require("dropbar.api")
+      vim.keymap.set("n", "<Leader>;", dropbar_api.pick, { desc = "Pick symbols in winbar" })
+      vim.keymap.set("n", "[;", dropbar_api.goto_context_start, { desc = "Go to start of current context" })
+      vim.keymap.set("n", "];", dropbar_api.select_next_context, { desc = "Select next context" })
+    end,
+  },
   {
     "utilyre/barbecue.nvim",
+    enabled = false,
     event = { "BufReadPost" },
     dependencies = {
       "SmiteshP/nvim-navic",
@@ -164,6 +180,7 @@ return {
   {
     "akinsho/toggleterm.nvim",
     event = { "BufReadPost" },
+    enabled = false,
     opts = {
       size = 20,
       open_mapping = [[<C-\>]],
@@ -258,6 +275,7 @@ return {
   {
     "glepnir/dashboard-nvim",
     event = "VimEnter",
+    enabled = false,
     dependencies = { { "nvim-tree/nvim-web-devicons" } },
     keys = { { "<leader>0", "<cmd>Dashboard<CR>", desc = "Dashboard" } },
     config = function()
@@ -281,6 +299,7 @@ return {
 
   {
     "petertriho/nvim-scrollbar",
+    enabled = false,
     event = "BufReadPost",
     opts = {
       set_highlights = false,
@@ -304,7 +323,7 @@ return {
 
   {
     "anuvyklack/windows.nvim",
-    enables = false,
+    enabled = false,
     event = "WinNew",
     dependencies = {
       { "anuvyklack/middleclass" },
@@ -320,7 +339,6 @@ return {
       vim.o.winminwidth = 30
       vim.o.equalalways = true
     end,
-    enabled = true,
   },
 
   {
@@ -369,6 +387,7 @@ return {
 
   {
     "kosayoda/nvim-lightbulb",
+    enabled = false,
     opts = {
       sign = {
         enabled = true,
@@ -432,75 +451,46 @@ return {
   {
     "folke/edgy.nvim",
     event = "VeryLazy",
-    init = function()
-      vim.opt.laststatus = 3
-      vim.opt.splitkeep = "topline"
+    ---@module 'edgy'
+    ---@param opts Edgy.Config
+    opts = function(_, opts)
+      for _, pos in ipairs({ "top", "bottom", "left", "right" }) do
+        opts[pos] = opts[pos] or {}
+        table.insert(opts[pos], {
+          ft = "snacks_terminal",
+          size = { height = 0.4 },
+          title = "%{b:snacks_terminal.id}: %{b:term_title}",
+          filter = function(_buf, win)
+            return vim.w[win].snacks_win
+              and vim.w[win].snacks_win.position == pos
+              and vim.w[win].snacks_win.relative == "editor"
+              and not vim.w[win].trouble_preview
+          end,
+        })
+      end
     end,
-    keys = {
-      {
-        "<leader>-",
-        function()
-          require("edgy").toggle("left")
-        end,
-        desc = "Toggle sidebar",
-      },
-    },
-    opts = {
-      exit_when_last = true,
-      bottom = {
-        -- toggleterm / lazyterm at the bottom with a height of 40% of the screen
-        {
-          title = "TERMINAL",
-          ft = "toggleterm",
-          size = { height = 0.35 },
-          -- exclude floating windows
-          filter = function(buf, win)
-            return vim.api.nvim_win_get_config(win).relative == ""
-          end,
-        },
-      },
-      left = {
-        -- Neo-tree filesystem always takes half the screen height
-        {
-          title = "FILES",
-          ft = "neo-tree",
-          filter = function(buf)
-            return vim.b[buf].neo_tree_source == "filesystem"
-          end,
-          pinned = true,
-          -- size = { height = 0.5 },
-          open = function()
-            require("neo-tree.command").execute({
-              actions = "show",
-              position = "left",
-              dir = require("tvl.util").get_root(),
-            })
-          end,
-        },
-        -- {
-        --   title = "OUTLINE",
-        --   ft = "neo-tree",
-        --   filter = function(buf)
-        --     return vim.b[buf].neo_tree_source == "document_symbols"
-        --   end,
-        --   pinned = true,
-        --   size = { height = 0.5 },
-        --   open = "Neotree position=top document_symbols",
-        -- },
-        {
-          title = "OUTLINE",
-          ft = "Outline",
-          pinned = true,
-          open = "OutlineOpen!",
-          -- size = { height = 0.5 },
-        },
-        -- any other neo-tree windows
-        "neo-tree",
-      },
-    },
+    -- init = function()
+    --   vim.opt.laststatus = 3
+    --   vim.opt.splitkeep = "topline"
+    -- end,
+    -- opts = {
+    --   exit_when_last = true,
+    --   bottom = {
+    --     -- toggleterm / lazyterm at the bottom with a height of 40% of the screen
+    --     {
+    --       title = "TERMINAL",
+    --       ft = "toggleterm",
+    --       size = { height = 0.35 },
+    --       -- exclude floating windows
+    --       filter = function(buf, win)
+    --         return vim.api.nvim_win_get_config(win).relative == ""
+    --       end,
+    --     },
+    --   },
   },
   {
     "stevearc/stickybuf.nvim",
+    enabled = false,
     opts = {
       get_auto_pin = function(bufnr)
         local buftype = vim.bo[bufnr].buftype
@@ -514,6 +504,7 @@ return {
   },
   {
     "willothy/flatten.nvim",
+    enabled = false,
     opts = function()
       ---@type Terminal?
       local saved_terminal

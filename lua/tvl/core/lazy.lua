@@ -13,7 +13,7 @@ vim.opt.rtp:prepend(lazypath)
 
 -- load lazy
 require("lazy").setup({
-  spec = "tvl.core.resources",
+  spec = {{import= "tvl.plugins"}},
   defaults = {
     lazy = false,
     -- version = false, -- always use the latest git commit
@@ -37,3 +37,5 @@ require("lazy").setup({
     },
   },
 })
+
+vim.lsp.enable({'julials', 'lua_ls', 'bashls', 'texlab'})

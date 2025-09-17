@@ -19,7 +19,7 @@ return {
         "julia",
         "latex",
       },
-      highlight = { enable = true, },
+      highlight = { enable = true },
       indent = { enable = true, disable = { "yaml" } },
       rainbow = {
         enable = false,
@@ -32,8 +32,10 @@ return {
   },
 
   {
-    "HiPhish/nvim-ts-rainbow2",
+    "HiPhish/rainbow-delimiters.nvim",
+    -- tag = "v0.9.1",
     event = "BufReadPost",
+    submodules = false,
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",

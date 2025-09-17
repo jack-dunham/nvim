@@ -24,6 +24,7 @@ return {
     "nvim-neo-tree/neo-tree.nvim",
     cmd = "Neotree",
     branch = "v3.x",
+    enabled = false,
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-tree/nvim-web-devicons", -- not strictly required, but recommended
@@ -164,6 +165,7 @@ return {
   {
     "nvim-telescope/telescope.nvim",
     cmd = "Telescope",
+    enabled = false,
     version = false, -- telescope did only one release, so use HEAD for now
     opts = {
       defaults = {
@@ -249,9 +251,9 @@ return {
     },
     keys = {
       -- goto
-      { "gd", "<cmd>Telescope lsp_definitions<cr>", desc = "Go to definition" },
-      { "gr", "<cmd>Telescope lsp_references<cr>", desc = "Go to references" },
-      { "gi", "<cmd>Telescope lsp_implementations<cr>", desc = "Go to implementations" },
+      -- { "gd", "<cmd>Telescope lsp_definitions<cr>", desc = "Go to definition" },
+      -- { "gr", "<cmd>Telescope lsp_references<cr>", desc = "Go to references" },
+      -- { "gi", "<cmd>Telescope lsp_implementations<cr>", desc = "Go to implementations" },
       -- search
       { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Find buffers" },
       { "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Find colorschemes" },
@@ -283,15 +285,16 @@ return {
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
+    dependencies = { "echasnovski/mini.icons" },
     opts = {
       plugins = {
         presets = { motions = false, g = false }, -- This fix mapping for fold when press f and nothing show up
       },
-      window = {
-        margin = { 1, 0, 2, 0 }, -- extra window margin [top, right, bottom, left]
-        padding = { 1, 2, 1, 2 }, -- extra window padding [top, right, bottom, left]
-        winblend = 5, -- value between 0-100 0 for fully opaque and 100 for fully transparent
-      },
+      -- window = {
+      --   margin = { 1, 0, 2, 0 }, -- extra window margin [top, right, bottom, left]
+      --   padding = { 1, 2, 1, 2 }, -- extra window padding [top, right, bottom, left]
+      --   winblend = 5, -- value between 0-100 0 for fully opaque and 100 for fully transparent
+      -- },
       layout = {
         height = { min = 3, max = 25 }, -- min and max height of the columns
         width = { min = 20, max = 50 }, -- min and max width of the columns
@@ -407,6 +410,7 @@ return {
   {
     "kevinhwang91/nvim-ufo",
     event = "BufReadPost",
+    enabled = false,
     dependencies = { "kevinhwang91/promise-async", event = "BufReadPost" },
     opts = {
       fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
@@ -479,6 +483,7 @@ return {
   {
     "luukvbaal/statuscol.nvim",
     event = "BufReadPost",
+    enabled = false,
     config = function()
       local builtin = require("statuscol.builtin")
       require("statuscol").setup({
@@ -561,6 +566,7 @@ return {
   },
   {
     "hedyhli/outline.nvim",
+    enabled = false,
     keys = {
       {
         [[<leader>O]],
@@ -598,14 +604,14 @@ return {
     "nvim-pack/nvim-spectre",
     cmd = "Spectre",
     keys = {
-      { "<leader>S", '<cmd>lua require("spectre").toggle()<CR>', desc = "Search and replace" },
-      { "<leader>sw", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', desc = "Search current word" },
-      { "<leader>sw", '<esc><cmd>lua require("spectre").open_visual()<CR>', desc = "Search current word", mode = "v" },
-      {
-        "<leader>sp",
-        '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>',
-        desc = "Search on current file",
-      },
+      { "<leader>sp", '<cmd>lua require("spectre").toggle()<CR>', desc = "Search and replace" },
+      -- { "<leader>sw", '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', desc = "Search current word" },
+      -- { "<leader>sw", '<esc><cmd>lua require("spectre").open_visual()<CR>', desc = "Search current word", mode = "v" },
+      -- {
+      --   "<leader>sp",
+      --   '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>',
+      --   desc = "Search on current file",
+      -- },
       config = true,
     },
   },

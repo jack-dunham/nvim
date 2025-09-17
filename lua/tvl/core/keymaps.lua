@@ -26,8 +26,6 @@ map("n", "<c-q>", "<c-w>q", opts)
 -------------------- Navigate buffers --------------------------
 -- map("n", "<S-l>", ":bnext<CR>", opts)
 -- map("n", "<S-h>", ":bprevious<CR>", opts)
-map("n", "<S-l>", ":BufferLineCycleNext<CR>", opts)
-map("n", "<S-h>", ":BufferLineCyclePrev<CR>", opts)
 map("n", "<A-S-l>", ":BufferLineMoveNext<CR>", opts)
 map("n", "<A-S-h>", ":BufferLineMovePrev<CR>", opts)
 
@@ -69,18 +67,18 @@ map("i", "<A-J>", "<ESC>:m .+1<CR>==gi", opts)
 map("i", "<A-K>", "<ESC>:m .-2<CR>==gi", opts)
 
 -------------------- No highlight ------------------------------
-map("n", "<leader>;", ":noh<CR>", { desc = "No highlight" })
+map("n", "<leader>h", ":noh<CR>", { desc = "No highlight" })
 
--------------------- Go to buffer quickly ----------------------
-map("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", { desc = "Buffer 1" })
-map("n", "<leader>2", "<Cmd>BufferLineGoToBuffer 2<CR>", { desc = "Buffer 2" })
-map("n", "<leader>3", "<Cmd>BufferLineGoToBuffer 3<CR>", { desc = "Buffer 3" })
-map("n", "<leader>4", "<Cmd>BufferLineGoToBuffer 4<CR>", { desc = "Buffer 4" })
-map("n", "<leader>5", "<Cmd>BufferLineGoToBuffer 5<CR>", { desc = "Buffer 5" })
-map("n", "<leader>6", "<Cmd>BufferLineGoToBuffer 6<CR>", { desc = "Buffer 6" })
-map("n", "<leader>7", "<Cmd>BufferLineGoToBuffer 7<CR>", { desc = "Buffer 7" })
-map("n", "<leader>8", "<Cmd>BufferLineGoToBuffer 8<CR>", { desc = "Buffer 8" })
-map("n", "<leader>9", "<Cmd>BufferLineGoToBuffer 9<CR>", { desc = "Buffer 9" })
+-- -------------------- Go to buffer quickly ----------------------
+-- map("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", { desc = "Buffer 1" })
+-- map("n", "<leader>2", "<Cmd>BufferLineGoToBuffer 2<CR>", { desc = "Buffer 2" })
+-- map("n", "<leader>3", "<Cmd>BufferLineGoToBuffer 3<CR>", { desc = "Buffer 3" })
+-- map("n", "<leader>4", "<Cmd>BufferLineGoToBuffer 4<CR>", { desc = "Buffer 4" })
+-- map("n", "<leader>5", "<Cmd>BufferLineGoToBuffer 5<CR>", { desc = "Buffer 5" })
+-- map("n", "<leader>6", "<Cmd>BufferLineGoToBuffer 6<CR>", { desc = "Buffer 6" })
+-- map("n", "<leader>7", "<Cmd>BufferLineGoToBuffer 7<CR>", { desc = "Buffer 7" })
+-- map("n", "<leader>8", "<Cmd>BufferLineGoToBuffer 8<CR>", { desc = "Buffer 8" })
+-- map("n", "<leader>9", "<Cmd>BufferLineGoToBuffer 9<CR>", { desc = "Buffer 9" })
 
 -------------------- Split window ------------------------------
 -- map("n", "<leader>\\", ":vsplit<CR>", opts)
@@ -90,6 +88,7 @@ map("n", "<leader>|", ":vsplit<CR>", { desc = "Vertical split" })
 -------------------- Switching between pairs --------------------------------
 map("n", "<tab>", "%", opts)
 map("v", "<tab>", "%", opts)
+map("o", "<tab>", "%", opts)
 
 -------------------- Inspect --------------------------------
 map("n", "<F2>", "<cmd>Inspect<CR>", opts)
@@ -115,7 +114,6 @@ map("o", "N", "Nzz", { desc = "Prev search result" })
 map("x", "n", "nzz", { desc = "Next search result" })
 map("x", "N", "Nzz", { desc = "Prev search result" })
 
--- stylua: ignore start
 
 -------------------- Toggles -----------------------------
 -- map("n", "<leader>us", function() Util.toggle("spell") end, { desc = "Toggle spelling" })
@@ -125,6 +123,7 @@ map("x", "N", "Nzz", { desc = "Prev search result" })
 -- local conceallevel = vim.o.conceallevel > 0 and vim.o.conceallevel or 3
 -- map("n", "<leader>uc", function() Util.toggle("conceallevel", false, {0, conceallevel}) end, { desc = "Toggle conceal" })
 
+-- stylua: ignore start
 Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>us")
 Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>uw")
 Snacks.toggle.option("relativenumber", { name = "Relative Number" }):map("<leader>uL")
@@ -140,6 +139,7 @@ Snacks.toggle.indent():map("<leader>ug")
 Snacks.toggle.scroll():map("<leader>uS")
 Snacks.toggle.profiler():map("<leader>dpp")
 Snacks.toggle.profiler_highlights():map("<leader>dph")
+-- stylua: ignore end
 
 -------------------- Tabs -----------------------------
 map("n", "<leader><tab>l", "<cmd>tablast<cr>", { desc = "Last tab" })
@@ -153,7 +153,27 @@ map("n", "<leader><tab>[", "<cmd>tabprevious<cr>", { desc = "Previous tab" })
 map("t", "<esc>", "<C-\\><C-n>")
 
 -------------------- Disable arrow keys -----------------------------
-map({"","i"}, "<Up>", "<Nop>")
-map({"","i"}, "<Down>", "<Nop>")
-map({"","i"}, "<Left>", "<Nop>")
-map({"","i"}, "<Right>", "<Nop>")
+map({ "", "i" }, "<Up>", "<Nop>")
+map({ "", "i" }, "<Down>", "<Nop>")
+map({ "", "i" }, "<Left>", "<Nop>")
+map({ "", "i" }, "<Right>", "<Nop>")
+
+--------------------  LSP -----------------------------
+
+map("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>", { desc = "Code action" })
+map("n", "<leader>ci", "<cmd>checkhealth lsp<cr>", { desc = "Info" })
+map("n", "<leader>cj", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", { desc = "Next diagnostic" })
+map("n", "<leader>ck", "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", { desc = "Prev diagnostic" })
+map("n", "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<cr>", { desc = "CodeLens action" })
+map("n", "<leader>cq", "<cmd>lua vim.lsp.diagnostic.set_loclist()<cr>", { desc = "Quickfix" })
+map("n", "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<cr>", { desc = "Rename" })
+map("n", "<leader>W", function()
+  vim.lsp.buf.format({
+    filter = function(client)
+      -- do not use default `lua_ls` to format
+      local exclude_servers = { "lua_ls" }
+      return not vim.tbl_contains(exclude_servers, client.name)
+    end,
+  })
+  vim.cmd([[w!]])
+end, { desc = "Format and save" })

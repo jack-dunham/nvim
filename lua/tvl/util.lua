@@ -309,7 +309,7 @@ function M.find_tikzpicture()
         if input then
           local fname = vim.fs.joinpath("tikz", input .. ".tikz")
 
-          vim.fn.mkdir("tikz", 'p')
+          vim.fn.mkdir("tikz", "p")
 
           if vim.fn.filereadable(fname) > 0 then
             vim.notify("File " .. fname .. " already exists, try a different name", vim.log.levels.WARN)
@@ -332,6 +332,12 @@ function M.find_tikzpicture()
   else
     vim.notify("Not in TikZ environment.", vim.log.levels.INFO, {})
   end
+end
+
+function M.enable_shell_escape()
+  local latexprg = vim.g.vimtex_compiler_latexmk
+  table.insert(latexprg.options, "-shell-escape")
+  vim.g.vimtex_compiler_latexmk = latexprg
 end
 
 return M

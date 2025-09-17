@@ -1,6 +1,7 @@
 return {
   {
     "neovim/nvim-lspconfig",
+    enabled = false,
     branch = "master",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
@@ -32,7 +33,7 @@ return {
           })
           vim.cmd([[w!]])
         end,
-        desc = "Format and Save",
+        desc = "Format and save",
       },
     },
     config = function()
@@ -107,7 +108,6 @@ return {
         -- using `with()`, which modifies a subset of the source's default options
         sources = {
           formatting.stylua,
-          formatting.latexindent,
         },
       })
     end,
