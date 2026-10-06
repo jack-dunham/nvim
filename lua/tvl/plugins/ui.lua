@@ -7,7 +7,7 @@ return {
     enabled = false,
     opts = {
       notification = {
-        override_vim_notify = true,
+        override_vim_notify = false,
       },
     },
   },
@@ -107,6 +107,8 @@ return {
       -- },
     },
   },
+
+  { "nvim-mini/mini.animate", version = "*", opts = { cursor = { enable = false } } },
 
   {
     "echasnovski/mini.indentscope",
@@ -320,24 +322,23 @@ return {
       },
     },
   },
-
   {
     "anuvyklack/windows.nvim",
-    enabled = false,
+    enabled = true,
     event = "WinNew",
     dependencies = {
       { "anuvyklack/middleclass" },
-      { "anuvyklack/animation.nvim", enabled = false },
+      { "anuvyklack/animation.nvim", enabled = true },
     },
     opts = {
       animation = { enable = false, duration = 150, fps = 60 },
-      autowidth = { enable = true },
+      autowidth = { enable = false },
     },
-    keys = { { "<leader>m", "<cmd>WindowsMaximize<CR>", desc = "Zoom window" } },
+    keys = { { "<leader>M", "<cmd>WindowsMaximize<CR>", desc = "Zoom window" } },
     init = function()
-      vim.o.winwidth = 30
-      vim.o.winminwidth = 30
-      vim.o.equalalways = true
+      vim.o.winwidth = 20
+      vim.o.winminwidth = 20
+      vim.o.equalalways = false
     end,
   },
 
@@ -391,6 +392,7 @@ return {
     opts = {
       sign = {
         enabled = true,
+        text = "",
         -- Priority of the gutter sign
         priority = 20,
       },
@@ -415,9 +417,9 @@ return {
   {
     "folke/noice.nvim",
     event = "VeryLazy",
-    enabled = { true },
     opts = {
       notify = { enabled = false },
+      presets = { lsp_doc_border = true },
       cmdline = {
         view = "cmdline_popup",
         format = {
@@ -454,11 +456,13 @@ return {
     ---@module 'edgy'
     ---@param opts Edgy.Config
     opts = function(_, opts)
-      for _, pos in ipairs({ "top", "bottom", "left", "right" }) do
+      opts["exit_when_last"] = true
+      opts["animate"] = { enabled = false }
+      for _, pos in ipairs({ "top", "bottom", "left" }) do
         opts[pos] = opts[pos] or {}
         table.insert(opts[pos], {
           ft = "snacks_terminal",
-          size = { height = 0.4 },
+          size = { height = 0.3 },
           title = "%{b:snacks_terminal.id}: %{b:term_title}",
           filter = function(_buf, win)
             return vim.w[win].snacks_win
@@ -468,6 +472,31 @@ return {
           end,
         })
       end
+      for _, pos in ipairs({ "left", "right" }) do
+        opts[pos] = opts[pos] or {}
+        table.insert(opts[pos], {
+          ft = "snacks_terminal",
+          size = { width = 0.4 },
+          title = "%{b:snacks_terminal.id}: %{b:term_title}",
+          filter = function(_buf, win)
+            return vim.w[win].snacks_win
+              and vim.w[win].snacks_win.position == pos
+              and vim.w[win].snacks_win.relative == "editor"
+              and not vim.w[win].trouble_preview
+          end,
+        })
+      end
+
+      table.insert(
+        opts["bottom"],
+        { ft = "iron", title = "%{b:terminal_job_id}: %{b:term_title}", size = { height = 0.3 } }
+      )
+      table.insert(opts["left"], { title = "DAP Scopes", ft = "dapui_scopes", size = { width = 40 } })
+      table.insert(opts["left"], { title = "DAP Breakpoints", ft = "dapui_breakpoints" })
+      table.insert(opts["left"], { title = "DAP Stacks", ft = "dapui_stacks" })
+      table.insert(opts["left"], { title = "DAP Watches", ft = "dapui_watches" })
+      table.insert(opts["bottom"], { title = "DAP REPL", ft = "dap-repl", size = { height = 0.3 } })
+      table.insert(opts["bottom"], { title = "DAP Console", ft = "dapui_console" })
     end,
     -- init = function()
     --   vim.opt.laststatus = 3

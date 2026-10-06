@@ -141,3 +141,40 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
   end,
 })
+
+vim.api.nvim_create_autocmd("WinClosed", {
+  group = augroup("edge_track"),
+  nested = true,
+  callback = function()
+    local editor = require("edgy.editor")
+    local wins = editor.list_wins()
+    local check_main = function()
+      if vim.tbl_isempty(wins.main) then
+        vim.cmd([[qa!]])
+      end
+    end
+    vim.schedule(check_main)
+  end,
+})
+
+vim.api.nvim_create_autocmd("BufLeave", {
+  group = vim.api.nvim_create_augroup("ConformFormatOnBufferLeave", { clear = false }),
+  callback = function(args)
+    -- Only format if the buffer is a normal file buffer (not a help file, quickfix, etc.)
+    if vim.bo[args.buf].buftype == "" and vim.bo[args.buf].filetype ~= "" then
+      require("conform").format({ async = true, bufnr = args.buf })
+    end
+  end,
+  -- This applies the autocmd to all buffers
+  nested = true,
+})
+
+vim.api.nvim_create_autocmd("BufEnter", {
+  pattern = "*",
+  callback = function()
+    if vim.bo.filetype == "iron" then
+      vim.wo.winfixbuf = true
+      vim.wo.switchbuf = "useopen"
+    end
+  end,
+})

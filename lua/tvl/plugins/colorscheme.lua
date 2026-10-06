@@ -6,6 +6,9 @@ return {
       style = "moon",
       dim_inactive = false,
       sidebars = { "terminal", "help" },
+      on_highlights = function(hl, c)
+        hl.CopilotSuggestion = { fg = "#808080" }
+      end,
     },
     config = function(_, opts)
       require("tokyonight").setup(opts)

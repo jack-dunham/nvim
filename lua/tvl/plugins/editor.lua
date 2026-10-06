@@ -5,7 +5,7 @@ return {
   {
     "stevearc/oil.nvim",
     keys = {
-      { "<leader>F", ":Oil --float . <cr>", desc = "File explorer" },
+      { "<leader>F", "<cmd>tabnew<cr><cmd>Oil<cr>", desc = "Buffer File Editor" },
     },
     opts = {
       delete_to_trash = true,
@@ -17,6 +17,33 @@ return {
       },
       view_options = {
         show_hidden = true,
+      },
+      keymaps = {
+        ["<CR>"] = {
+          function()
+            local function callback(_)
+              local filetype = vim.bo.filetype
+              if filetype == "oil" then
+                return
+              end
+              local bufnr = vim.api.nvim_buf_get_name(0)
+              vim.cmd("tabclose")
+              vim.cmd("edit " .. bufnr)
+            end
+            require("oil.actions").select.callback({ callback = callback })
+          end,
+          desc = "Open the entry under the cursor",
+        },
+        ["<S-bs>"] = {
+          function()
+            local tabid = vim.api.nvim_get_current_tabpage()
+            require("oil.actions").close.callback()
+            local tabnr = vim.api.nvim_tabpage_get_number(tabid)
+            vim.cmd("tabclose" .. tabnr)
+          end,
+          mode = "n",
+          desc = "Close oil",
+        },
       },
     },
   },
@@ -279,6 +306,7 @@ return {
 
   {
     "benfowler/telescope-luasnip.nvim",
+    enabled = false,
     module = "telescope._extensions.luasnip", -- if you wish to lazy-load
   },
 
@@ -301,17 +329,34 @@ return {
         spacing = 5, -- spacing between columns
         align = "center", -- align columns left, center or right
       },
+      icons = {
+        rules = {
+          -- { plugin = "iron.nvim", icon = "", color = "red" },
+          { pattern = "%f[%a]repl%f[%A]", icon = "", color = "red" },
+          { pattern = "mark", icon = "󰍎", color = "cyan" },
+          { pattern = "plugin", cat = "filetype", name = "lazy" },
+          { pattern = "split", icon = "", color = "blue" },
+          { pattern = "highlight", icon = "󰸱", color = "orange" },
+          { pattern = "divider", icon = "#", color = "grey" },
+        },
+      },
     },
     config = function(_, opts)
       local wk = require("which-key")
       wk.setup(opts)
       local keymaps = {
         { "<leader><tab>", group = "Tabs" },
+        { "<leader>a", group = "AI" },
+        { "<leader>b", group = "Buffers" },
+        { "<leader>d", group = "Debug" },
+        { "<leader>m", group = "Marks" },
+        { "<leader>p", group = "Profile" },
         { "<leader>P", ":Lazy<cr>", desc = "Plugins" },
         { "<leader>Q", group = "Workspaces" },
         { "<leader>c", group = "Code" },
         { "<leader>f", group = "Find" },
         { "<leader>g", group = "Git" },
+        { "<leader>gh", group = "GitHub" },
         { "<leader>q", group = "Sessions" },
         { "<leader>r", group = "REPL" },
         { "<leader>s", group = "Search/Replace" },
@@ -319,6 +364,16 @@ return {
         { "<leader>z", group = "Snippets" },
         { "<localleader>l", group = "LaTeX" },
         { "g", group = "Goto" },
+        {
+          "<C-w><space>",
+          function()
+            return require("which-key").show({
+              keys = "<C-w>",
+              loop = true,
+            })
+          end,
+          desc = "Windows Hydra mode",
+        },
       }
       wk.add(keymaps)
     end,
@@ -348,13 +403,13 @@ return {
     keys = {
       { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk()<cr>", desc = "Next hunk" },
       { "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk()<cr>", desc = "Prev hunk" },
-      { "<leader>gl", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
+      { "<leader>g?", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
       { "<leader>gp", "<cmd>lua require 'gitsigns'.preview_hunk()<cr>", desc = "Preview hunk" },
       { "<leader>gr", "<cmd>lua require 'gitsigns'.reset_hunk()<cr>", desc = "Reset hunk" },
       { "<leader>gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", desc = "Reset Buffer" },
       { "<leader>gs", "<cmd>lua require 'gitsigns'.stage_hunk()<cr>", desc = "Stage hunk" },
       { "<leader>gu", "<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>", desc = "Undo Stage hunk" },
-      { "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Diff" },
+      -- { "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Diff" },
     },
   },
 
@@ -407,78 +462,68 @@ return {
     enabled = true,
   },
 
-  {
-    "kevinhwang91/nvim-ufo",
-    event = "BufReadPost",
-    enabled = false,
-    dependencies = { "kevinhwang91/promise-async", event = "BufReadPost" },
-    opts = {
-      fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
-        local newVirtText = {}
-        local suffix = ("  … %d "):format(endLnum - lnum)
-        local sufWidth = vim.fn.strdisplaywidth(suffix)
-        local targetWidth = width - sufWidth
-        local curWidth = 0
-        for _, chunk in ipairs(virtText) do
-          local chunkText = chunk[1]
-          local chunkWidth = vim.fn.strdisplaywidth(chunkText)
-          if targetWidth > curWidth + chunkWidth then
-            table.insert(newVirtText, chunk)
-          else
-            chunkText = truncate(chunkText, targetWidth - curWidth)
-            local hlGroup = chunk[2]
-            table.insert(newVirtText, { chunkText, hlGroup })
-            chunkWidth = vim.fn.strdisplaywidth(chunkText)
-            -- str width returned from truncate() may less than 2nd argument, need padding
-            if curWidth + chunkWidth < targetWidth then
-              suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
-            end
-            break
-          end
-          curWidth = curWidth + chunkWidth
-        end
-        table.insert(newVirtText, { suffix, "MoreMsg" })
-        return newVirtText
-      end,
-      open_fold_hl_timeout = 0,
-    },
-    keys = {
-      { "zd", desc = "Delete fold under cursor" },
-      { "zo", desc = "Open fold under cursor" },
-      { "zO", desc = "Open all folds under cursor" },
-      { "zC", desc = "Close all folds under cursor" },
-      { "za", desc = "Toggle fold under cursor" },
-      { "zA", desc = "Toggle all folds under cursor" },
-      { "zv", desc = "Show cursor line" },
-      {
-        "zM",
-        function()
-          require("ufo").closeAllFolds()
-        end,
-        desc = "Close all folds",
-      },
-      {
-        "zR",
-        function()
-          require("ufo").openAllFolds()
-        end,
-        desc = "Open all folds",
-      },
-      { "zm", desc = "Fold more" },
-      { "zr", desc = "Fold less" },
-      { "zx", desc = "Update folds" },
-      { "zz", desc = "Center this line" },
-      { "zt", desc = "Top this line" },
-      { "zb", desc = "Bottom this line" },
-      { "zg", desc = "Add word to spell list" },
-      { "zw", desc = "Mark word as bad/misspelling" },
-      { "ze", desc = "Right this line" },
-      { "zE", desc = "Delete all folds in current buffer" },
-      { "zs", desc = "Left this line" },
-      { "zH", desc = "Half screen to the left" },
-      { "zL", desc = "Half screen to the right" },
-    },
-  },
+  -- {
+  --   "kevinhwang91/nvim-ufo",
+  --   event = "BufReadPost",
+  --   enabled = false,
+  --   dependencies = { "kevinhwang91/promise-async", event = "BufReadPost" },
+  --   opts = {
+  --     fold_virt_text_handler = function(virtText, lnum, endLnum, width, truncate)
+  --       local newVirtText = {}
+  --       local suffix = ("  … %d "):format(endLnum - lnum)
+  --       local sufWidth = vim.fn.strdisplaywidth(suffix)
+  --       local targetWidth = width - sufWidth
+  --       local curWidth = 0
+  --       for _, chunk in ipairs(virtText) do
+  --         local chunkText = chunk[1]
+  --         local chunkWidth = vim.fn.strdisplaywidth(chunkText)
+  --         if targetWidth > curWidth + chunkWidth then
+  --           table.insert(newVirtText, chunk)
+  --         else
+  --           chunkText = truncate(chunkText, targetWidth - curWidth)
+  --           local hlGroup = chunk[2]
+  --           table.insert(newVirtText, { chunkText, hlGroup })
+  --           chunkWidth = vim.fn.strdisplaywidth(chunkText)
+  --           -- str width returned from truncate() may less than 2nd argument, need padding
+  --           if curWidth + chunkWidth < targetWidth then
+  --             suffix = suffix .. (" "):rep(targetWidth - curWidth - chunkWidth)
+  --           end
+  --           break
+  --         end
+  --         curWidth = curWidth + chunkWidth
+  --       end
+  --       table.insert(newVirtText, { suffix, "MoreMsg" })
+  --       return newVirtText
+  --     end,
+  --     open_fold_hl_timeout = 0,
+  --   },
+  --   -- stylua: ignore start
+  --   keys = {
+  --     { "zd", desc = "Delete fold under cursor" },
+  --     { "zo", desc = "Open fold under cursor" },
+  --     { "zO", desc = "Open all folds under cursor" },
+  --     { "zC", desc = "Close all folds under cursor" },
+  --     { "za", desc = "Toggle fold under cursor" },
+  --     { "zA", desc = "Toggle all folds under cursor" },
+  --     { "zv", desc = "Show cursor line" },
+  --     { "zM", function() require("ufo").closeAllFolds() end, desc = "Close all folds", },
+  --     { "zR", function() require("ufo").openAllFolds() end, desc = "Open all folds", },
+  --     { "zm", desc = "Fold more" },
+  --     { "zr", desc = "Fold less" },
+  --     { "zx", desc = "Update folds" },
+  --     { "zz", desc = "Center this line" },
+  --     { "zt", desc = "Top this line" },
+  --     { "zb", desc = "Bottom this line" },
+  --     { "zg", desc = "Add word to spell list" },
+  --     { "zw", desc = "Mark word as bad/misspelling" },
+  --     { "ze", desc = "Right this line" },
+  --     { "zE", desc = "Delete all folds in current buffer" },
+  --     { "zs", desc = "Left this line" },
+  --     { "zH", desc = "Half screen to the left" },
+  --     { "zL", desc = "Half screen to the right" },
+  --   },
+  --   -- stylua: ignore end
+  -- },
 
   {
     "luukvbaal/statuscol.nvim",
@@ -517,52 +562,14 @@ return {
       vim.api.nvim_set_hl(0, "FlashLabel", { fg = "#FFFFFF", bg = "#000000" })
     end,
     keys = {
-      {
-        "s",
-        mode = { "n", "x", "o" },
-        function()
-          require("flash").jump()
-        end,
-        desc = "Flash",
-      },
-      {
-        "S",
-        mode = { "n", "x", "o" },
-        function()
-          require("flash").treesitter()
-        end,
-        desc = "Flash Treesitter",
-      },
-      {
-        "r",
-        mode = "o",
-        function()
-          require("flash").remote()
-        end,
-        desc = "Remote Flash",
-      },
-      {
-        "R",
-        mode = { "o", "x" },
-        function()
-          require("flash").treesitter_search()
-        end,
-        desc = "Treesitter Search",
-      },
-      {
-        "<c-s>",
-        mode = { "c" },
-        function()
-          require("flash").toggle()
-        end,
-        desc = "Toggle Flash Search",
-      },
+      -- stylua: ignore start
+      {"<CR>", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash",},
+      {"<S-CR>", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter",},
+      {"r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash",},
+      {"R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search",},
+      {"<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search",},
+      -- stylua: ignore end
     },
-  },
-  {
-    "rasulomaroff/reactive.nvim",
-    enabled = false,
-    config = true,
   },
   {
     "hedyhli/outline.nvim",
@@ -612,7 +619,109 @@ return {
       --   '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>',
       --   desc = "Search on current file",
       -- },
-      config = true,
+    },
+    config = true,
+  },
+  {
+    "anuvyklack/hydra.nvim",
+    enabled = false,
+    config = function()
+      local Hydra = require("hydra")
+      Hydra({
+        name = "Windows",
+        config = {
+          invoke_on_body = true,
+          hint = {
+            border = "rounded",
+            offset = -1,
+          },
+        },
+        mode = "n",
+        body = "<C-w>",
+        heads = {
+          { "<", "<C-w><" },
+          { ">", "<C-w>>" },
+          { "+", "C-w>+" },
+          { "-", "<C-w>-" },
+          { "=", "<C-w>=" },
+
+          { "j", "<C-w>j" },
+          { "k", "<C-w>k" },
+          { "h", "<C-w>h" },
+          { "l", "<C-w>l" },
+
+          { "H", "<C-w>H" },
+          { "J", "<C-w>J" },
+          { "K", "<C-w>K" },
+          { "L", "<C-w>L" },
+        },
+      })
+    end,
+  },
+  {
+    "andythigpen/nvim-coverage",
+    version = "*",
+    config = function()
+      require("coverage").setup({
+        auto_reload = true,
+        lang = {
+          julia = {
+            directories = "src,ext,test",
+          },
+        },
+      })
+    end,
+    keys = {
+      {
+        "<leader>cv",
+        vim.schedule_wrap(function()
+          require("coverage").toggle()
+        end),
+        desc = "Toggle coverage",
+      },
+      {
+        "<leader>cV",
+        vim.schedule_wrap(function()
+          require("coverage").load(true)
+        end),
+        desc = "Load and show Coverage",
+      },
+      {
+        "<leader>ct",
+        function()
+          vim.system(
+            { "julia", "--project=.", "-e", "using Pkg; Pkg.test(; coverage = true)" },
+            { text = true },
+            function(obj)
+              vim.schedule(function()
+                if obj.code == 0 then
+                  vim.notify(obj.stderr)
+                  -- require("coverage").load(true)
+                else
+                  vim.notify("Failed to run tests", vim.log.levels.ERROR)
+                end
+              end)
+            end
+          )
+        end,
+        -- function()
+        --   vim.system(
+        --     { "julia", "--project=.", "--startup-file=no", "-e", '"using Pkg; Pkg.test(; coverage=true)"' },
+        --     { text = true },
+        --     function(obj)
+        --       vim.schedule(function()
+        --         if obj.code == 0 then
+        --           print(obj.stdout)
+        --           require("coverage").load(true)
+        --         else
+        --           vim.notify("Failed to run tests with coverage", vim.log.levels.ERROR)
+        --         end
+        --       end)
+        --     end
+        --   )
+        -- end,
+        desc = "Run tests with converage",
+      },
     },
   },
 }

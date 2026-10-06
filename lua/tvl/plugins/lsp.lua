@@ -2,7 +2,6 @@ return {
   {
     "neovim/nvim-lspconfig",
     enabled = false,
-    branch = "master",
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "williamboman/mason.nvim",
@@ -45,31 +44,44 @@ return {
       end)
 
       -- diagnostics
+      local severity = vim.diagnostic.severity
+
+      local signs = {
+        text = {},
+        linehl = {},
+        numhl = {
+          [severity.ERROR] = "DiagnosticSignError",
+          [severity.WARN] = "DiagnosticSignWarn",
+          [severity.HINT] = "DiagnosticSignHint",
+          [severity.INFO] = "DiagnosticSignInfo",
+        },
+      }
+
       for name, icon in pairs(require("tvl.core.icons").diagnostics) do
-        local function firstUpper(s)
-          return s:sub(1, 1):upper() .. s:sub(2)
-        end
-        name = "DiagnosticSign" .. firstUpper(name)
-        vim.fn.sign_define(name, { text = icon, texthl = name, numhl = "" })
+        signs.text[severity[name]] = icon
+        signs.linehl[severity[name]] = ""
       end
+
+      vim.diagnostic.config({ signs = signs })
       vim.diagnostic.config(require("tvl.config.lsp.diagnostics")["on"])
 
       local servers = require("tvl.config.lsp.servers")
       local ext_capabilites = vim.lsp.protocol.make_client_capabilities()
       local capabilities = require("tvl.util").capabilities(ext_capabilites)
 
-      local function setup(server)
-        if servers[server] and servers[server].disabled then
-          return
-        end
-        local server_opts = vim.tbl_deep_extend("force", {
-          capabilities = vim.deepcopy(capabilities),
-        }, servers[server] or {})
-        require("lspconfig")[server].setup(server_opts)
-      end
+      -- local function setup(server)
+      --   if servers[server] and servers[server].disabled then
+      --     return
+      --   end
+      --   local server_opts = vim.tbl_deep_extend("force", {
+      --     capabilities = vim.deepcopy(capabilities),
+      --   }, servers[server] or {})
+      --   require("lspconfig")[server].setup(server_opts)
+      -- end
 
-      local available = vim.tbl_keys(require("mason-lspconfig.mappings.server").lspconfig_to_package)
-
+      vim.lsp.enable({ "julials", "lua_ls", "bashls", "texlab", "pyright" })
+      -- local available = vim.tbl_keys(require("mason-lspconfig.mappings.server").lspconfig_to_package)
+      --
       local ensure_installed = {}
       for server, server_opts in pairs(servers) do
         if server_opts then
@@ -82,7 +94,6 @@ return {
       end
 
       require("mason-lspconfig").setup({ ensure_installed = ensure_installed })
-      require("mason-lspconfig").setup_handlers({ setup })
     end,
   },
 
@@ -93,23 +104,38 @@ return {
       require("mason").setup()
     end,
   },
-
   -- formatters
+  -- {
+  --   "nvimtools/none-ls.nvim",
+  --   event = { "BufReadPre", "BufNewFile" },
+  --   dependencies = { "mason.nvim" },
+  --   dev = false,
+  --   config = function()
+  --     local null_ls = require("null-ls")
+  --     local formatting = null_ls.builtins.formatting
+  --     null_ls.setup({
+  --       debug = false,
+  --       -- You can then register sources by passing a sources list into your setup function:
+  --       -- using `with()`, which modifies a subset of the source's default options
+  --       sources = {
+  --         formatting.stylua,
+  --         require("format.runic"),
+  --       },
+  --     })
+  --   end,
+  -- },
   {
-    "nvimtools/none-ls.nvim",
-    event = { "BufReadPre", "BufNewFile" },
-    dependencies = { "mason.nvim" },
-    config = function()
-      local null_ls = require("null-ls")
-      local formatting = null_ls.builtins.formatting
-      null_ls.setup({
-        debug = false,
-        -- You can then register sources by passing a sources list into your setup function:
-        -- using `with()`, which modifies a subset of the source's default options
-        sources = {
-          formatting.stylua,
+    "stevearc/conform.nvim",
+    opts = {
+      formatters = {
+        itfmt = {
+          command = "itfmt",
         },
-      })
-    end,
+      },
+      formatters_by_ft = {
+        lua = { "stylua" },
+        julia = { "itfmt" },
+      },
+    },
   },
 }

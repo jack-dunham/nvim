@@ -27,8 +27,16 @@ local function setup()
     sections = {
       lualine_a = { cpn.branch },
       lualine_b = { cpn.diagnostics },
-      lualine_c = {},
-      lualine_x = { cpn.diff },
+      lualine_c = {
+        function()
+          if vim.fn.reg_recording() ~= "" then
+            return "recording @" .. vim.fn.reg_recording()
+          else
+            return ""
+          end
+        end,
+      },
+      lualine_x = { "lsp_status", cpn.diff },
       lualine_y = { cpn.position, cpn.filetype },
       lualine_z = { cpn.spaces, cpn.mode },
     },

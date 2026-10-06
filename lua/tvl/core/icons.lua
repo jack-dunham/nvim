@@ -13,10 +13,10 @@ return {
     LogPoint = ".>",
   },
   diagnostics = {
-    error = "",
-    warn = "",
-    hint = "",
-    info = "",
+    ERROR = "",
+    WARN = "",
+    HINT = "",
+    INFO = "",
   },
   git = {
     added = "",

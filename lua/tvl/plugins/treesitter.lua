@@ -1,11 +1,17 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    version = false, -- last release is way too old and doesn't work on Windows
+    lazy = false,
+    branch = "main",
     build = ":TSUpdate",
-    event = { "BufReadPost", "BufNewFile" },
     opts = {
-      ensure_installed = {
+      install_dir = vim.fn.stdpath("data") .. "/site",
+    },
+    config = function(_, opts)
+      local ts = require("nvim-treesitter")
+      ts.setup(opts)
+
+      local installed = {
         "bash",
         "json",
         "lua",
@@ -18,19 +24,36 @@ return {
         "cpp",
         "julia",
         "latex",
-      },
-      highlight = { enable = true },
-      indent = { enable = true, disable = { "yaml" } },
-      rainbow = {
-        enable = false,
-        query = "rainbow-parens",
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
-    end,
-  },
+      }
+      ts.install(installed)
 
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = installed,
+        callback = function()
+          vim.treesitter.start()
+        end,
+      })
+    end,
+    -- opts = {
+    --   highlight = { enable = true },
+    --   indent = { enable = true, disable = { "yaml" } },
+    --   rainbow = {
+    --     enable = false,
+    --     query = "rainbow-parens",
+    --   },
+    --   textobjects = {
+    --     swap = {
+    --       enable = true,
+    --       swap_next = {
+    --         ["<leader>]"] = "@parameter.inner",
+    --       },
+    --       swap_previous = {
+    --         ["<leader>["] = "@parameter.inner",
+    --       },
+    --     },
+    --   },
+    -- },
+  },
   {
     "HiPhish/rainbow-delimiters.nvim",
     -- tag = "v0.9.1",
@@ -39,10 +62,12 @@ return {
   },
   {
     "nvim-treesitter/nvim-treesitter-textobjects",
+    branch = "main",
     init = function()
       -- PERF: no need to load the plugin, if we only need its queries for mini.ai
       local plugin = require("lazy.core.config").spec.plugins["nvim-treesitter"]
       local opts = require("lazy.core.plugin").values(plugin, "opts", false)
+
       local enabled = false
       if opts.textobjects then
         for _, mod in ipairs({ "move", "select", "swap", "lsp_interop" }) do

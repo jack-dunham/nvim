@@ -1,6 +1,6 @@
 return {
   cmd = { "texlab" },
-  filetypes = { "tex", "tikz", "plaintex", "bib" },
+  filetypes = { "tex", "plaintex", "bib" },
   single_file_support = true,
   root_markers = {
     ".git",

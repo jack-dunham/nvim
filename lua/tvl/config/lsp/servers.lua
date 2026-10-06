@@ -31,15 +31,19 @@ local servers = {
   },
   bashls = {},
   -- texlab = {},
-  julials = {
-    root_dir = function(fname)
-      return require("lspconfig.util").root_pattern("Project.toml")(fname)
-        or require("lspconfig.util").find_git_ancestor(fname)
-    end,
-    filetypes = { "julia" },
-    single_file_support = true,
-    autostart = true,
-  },
+  -- julials = {
+  --   root_dir = function(fname)
+  --     return require("lspconfig.util").root_pattern("Project.toml")(fname)
+  --       or require("lspconfig.util").find_git_ancestor(fname)
+  --   end,
+  --   filetypes = { "julia" },
+  --   single_file_support = true,
+  --   autostart = true,
+  --   settings = {
+  --     format = false,
+  --   },
+  -- },
+  jetls = {},
 }
 
 return servers

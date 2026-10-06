@@ -50,6 +50,9 @@ map("n", "<A-C-k>", ":resize -1<CR>", opts)
 map("n", "<A-C-h>", ":vertical resize +1<CR>", opts)
 map("n", "<A-C-l>", ":vertical resize -1<CR>", opts)
 
+map("n", "<C-w>>", ":vertical resize +2<CR>", opts)
+map("n", "<C-w><", ":vertical resize -2<CR>", opts)
+
 -------------------- Move text up/ down ------------------------
 -- Visual --
 map("v", "<A-J>", ":m .+1<CR>==", opts)
@@ -67,7 +70,7 @@ map("i", "<A-J>", "<ESC>:m .+1<CR>==gi", opts)
 map("i", "<A-K>", "<ESC>:m .-2<CR>==gi", opts)
 
 -------------------- No highlight ------------------------------
-map("n", "<leader>h", ":noh<CR>", { desc = "No highlight" })
+map("n", "<leader>h", ":noh<CR>", { desc = "No Highlight" })
 
 -- -------------------- Go to buffer quickly ----------------------
 -- map("n", "<leader>1", "<Cmd>BufferLineGoToBuffer 1<CR>", { desc = "Buffer 1" })
@@ -86,9 +89,9 @@ map("n", "<leader>_", ":split<CR>", { desc = "Horizontal split" })
 map("n", "<leader>|", ":vsplit<CR>", { desc = "Vertical split" })
 
 -------------------- Switching between pairs --------------------------------
-map("n", "<tab>", "%", opts)
-map("v", "<tab>", "%", opts)
-map("o", "<tab>", "%", opts)
+map("n", "<Tab>", "%", opts)
+map("v", "<Tab>", "%", opts)
+map("o", "<Tab>", "%", opts)
 
 -------------------- Inspect --------------------------------
 map("n", "<F2>", "<cmd>Inspect<CR>", opts)
@@ -107,12 +110,18 @@ end, { desc = "[/] Fuzzily search in current buffer]" })
 -- map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 -- map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev search result" })
 
-map("n", "n", "nzz", { desc = "Next search result" })
-map("n", "N", "Nzz", { desc = "Prev search result" })
-map("o", "n", "nzz", { desc = "Next search result" })
-map("o", "N", "Nzz", { desc = "Prev search result" })
-map("x", "n", "nzz", { desc = "Next search result" })
-map("x", "N", "Nzz", { desc = "Prev search result" })
+-- map("n", "n", "nzz", { desc = "Next search result" })
+-- map("n", "N", "Nzz", { desc = "Prev search result" })
+-- map("o", "n", "nzz", { desc = "Next search result" })
+-- map("o", "N", "Nzz", { desc = "Prev search result" })
+-- map("x", "n", "nzz", { desc = "Next search result" })
+-- map("x", "N", "Nzz", { desc = "Prev search result" })
+
+-- stylua: ignore start
+map( {"n", "o", "x"}, "n", '<Cmd>lua vim.cmd("normal! n"); ' .. 'MiniAnimate.execute_after("scroll", "normal! zz")<CR>', { desc = "Next search result" })
+map( {"n", "o", "x"}, "N", '<Cmd>lua vim.cmd("normal! N"); ' .. 'MiniAnimate.execute_after("scroll", "normal! zz")<CR>', { desc = "Prev search result" })
+
+-- stylua: ignore end
 
 
 -------------------- Toggles -----------------------------
@@ -150,7 +159,7 @@ map("n", "<leader><tab>d", "<cmd>tabclose<cr>", { desc = "Close tab" })
 map("n", "<leader><tab>[", "<cmd>tabprevious<cr>", { desc = "Previous tab" })
 
 -------------------- Terminal -----------------------------
-map("t", "<esc>", "<C-\\><C-n>")
+map("t", "<esc><esc>", "<C-\\><C-n>")
 
 -------------------- Disable arrow keys -----------------------------
 map({ "", "i" }, "<Up>", "<Nop>")
@@ -159,21 +168,30 @@ map({ "", "i" }, "<Left>", "<Nop>")
 map({ "", "i" }, "<Right>", "<Nop>")
 
 --------------------  LSP -----------------------------
-
+-- stylua: ignore start
 map("n", "<leader>ca", "<cmd>lua vim.lsp.buf.code_action()<cr>", { desc = "Code action" })
 map("n", "<leader>ci", "<cmd>checkhealth lsp<cr>", { desc = "Info" })
-map("n", "<leader>cj", "<cmd>lua vim.lsp.diagnostic.goto_next()<CR>", { desc = "Next diagnostic" })
-map("n", "<leader>ck", "<cmd>lua vim.lsp.diagnostic.goto_prev()<cr>", { desc = "Prev diagnostic" })
+map("n", "<leader>cj", "<cmd>lua vim.diagnostic.jump({count = 1})<CR>", { desc = "Next diagnostic" })
+map("n", "<leader>ck", "<cmd>lua vim.diagnostic.jump({count = -1})<cr>", { desc = "Prev diagnostic" })
 map("n", "<leader>cl", "<cmd>lua vim.lsp.codelens.run()<cr>", { desc = "CodeLens action" })
-map("n", "<leader>cq", "<cmd>lua vim.lsp.diagnostic.set_loclist()<cr>", { desc = "Quickfix" })
+map("n", "<leader>cq", "<cmd>lua vim.diagnostic.setloclist()<cr>", { desc = "Quickfix" })
 map("n", "<leader>cr", "<cmd>lua vim.lsp.buf.rename()<cr>", { desc = "Rename" })
-map("n", "<leader>W", function()
-  vim.lsp.buf.format({
-    filter = function(client)
-      -- do not use default `lua_ls` to format
-      local exclude_servers = { "lua_ls" }
-      return not vim.tbl_contains(exclude_servers, client.name)
-    end,
-  })
-  vim.cmd([[w!]])
-end, { desc = "Format and save" })
+      vim.diagnostic.config({ signs = signs })
+map("n", "<leader>cd", function() vim.diagnostic.open_float() end, { desc = "Show diagnostic" })
+map("n", "<leader>W", function() require("conform").format({ async = true, lsp_format = "fallback" }) vim.cmd([[w!]]) end, { desc = "Format and save" })
+-- stylua: ignore end
+
+vim.g.copilot_no_tab_map = true
+
+-- vim.g.nvim_surround_no_normal_mappings = true
+-- map("i", "<C-g>z", "<Plug>(nvim-surround-insert)", { desc = "Surround" })
+-- map("i", "<C-g>Z", "<Plug>(nvim-surround-insert-line)", { desc = "Surround (new lines)" })
+-- map("n", "yz", "<Plug>(nvim-surround-normal)", { desc = "Surround" })
+-- map("n", "yzz", "<Plug>(nvim-surround-normal-cur)", { desc = "Surround line" })
+-- map("n", "yZ", "<Plug>(nvim-surround-normal-line)", { desc = "Surround (new lines)" })
+-- map("n", "yZZ", "<Plug>(nvim-surround-normal-cur-line)", { desc = "Surround line (new lines)" })
+-- map("x", "Z", "<Plug>(nvim-surround-visual)", { desc = "Surround" })
+-- map("x", "gZ", "<Plug>(nvim-surround-visual-line)", { desc = "Surround (new lines)" })
+-- map("n", "dz", "<Plug>(nvim-surround-delete)", { desc = "Delete surround" })
+-- map("n", "cz", "<Plug>(nvim-surround-change)", { desc = "Change surround" })
+-- map("n", "cZ", "<Plug>(nvim-surround-change-line)", { desc = "Change surround (new lines)" })

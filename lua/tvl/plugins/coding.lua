@@ -13,22 +13,30 @@ return {
     event = "InsertEnter",
     enabled = true,
     opts = {
+      -- tabkey = "<Tab>",
       tabkey = "<Tab>",
       act_as_tab = true,
     },
   },
   {
-    "andythigpen/nvim-coverage",
+    "nvim-mini/mini.snippets",
     version = "*",
-    config = function()
-      require("coverage").setup({
-        auto_reload = true,
-      })
-    end,
+    opts = {
+      snippets = {
+        { prefix = "tis", body = "This is snippet $1 $2 $0", desc = "Snip" },
+      },
+      mappings = {
+        expand = "<C-l>",
+        jump_next = "<Tab>",
+        jump_prev = "<S-Tab>",
+      },
+    },
   },
   {
     "L3MON4D3/LuaSnip",
+    enabled = false,
     dependencies = { "neotab.nvim" },
+    build = "make install_jsregexp",
     config = function()
       local opts = {
         history = true,
@@ -57,21 +65,24 @@ return {
       require("luasnip.loaders.from_vscode").lazy_load({ paths = { vim.fn.stdpath("config") .. "/snippets" } })
       require("luasnip.loaders.from_lua").lazy_load({ paths = { vim.fn.stdpath("config") .. "/LuaSnip/" } })
     end,
-    -- stylua: ignore
     keys = {
       {
-        "<tab>",
+        "<Tab>",
         function()
-          require("luasnip").jump(1)
+          return require("luasnip").jumpable(1) --
+              and "<Plug>luasnip-jump-next"
+            or "<Plug>(neotab-out)"
         end,
-        mode = "s",
+        expr = true,
+        silent = true,
+        mode = "i",
       },
       {
-        "<s-tab>",
+        "<S-Tab>",
         function()
           require("luasnip").jump(-1)
         end,
-        mode = { "i", "s" },
+        mode = { "i" },
       },
     },
   },
@@ -79,31 +90,34 @@ return {
     "saghen/blink.cmp",
     version = "*",
     build = "cargo build --release",
-    opts_extend = {
-      "sources.completion.enabled_providers",
-      "sources.compat",
-      "sources.default",
-    },
+    -- opts_extend = {
+    --   "sources.completion.enabled_providers",
+    --   "sources.compat",
+    --   "sources.default",
+    -- },
     dependencies = {
       "rafamadriz/friendly-snippets",
       -- add blink.compat to dependencies
-      {
-        "saghen/blink.compat",
-        optional = true, -- make optional so it's only enabled if any extras need it
-        opts = {},
-        version = not vim.g.lazyvim_blink_main and "*",
-      },
+      "erooke/blink-cmp-latex",
+      "nvim-mini/mini.snippets",
+      -- "kdheepak/cmp-latex-symbols",
+      -- {
+      --   "saghen/blink.compat",
+      --   optional = true, -- make optional so it's only enabled if any extras need it
+      --   opts = {},
+      --   version = not vim.g.lazyvim_blink_main and "*",
+      -- },
     },
     event = "InsertEnter",
 
     ---@module 'blink.cmp'
     ---@type blink.cmp.Config
     opts = {
-      snippets = {
-        expand = function(snippet, _)
-          return require("tvl.cmp").expand(snippet)
-        end,
-      },
+      snippets = { preset = "mini_snippets" },
+      --   expand = function(snippet, _)
+      --     return require("tvl.cmp").expand(snippet)
+      --   end,
+      -- },
       appearance = {
         -- sets the fallback highlight groups to nvim-cmp's highlight groups
         -- useful for when your theme doesn't support blink.cmp
@@ -124,11 +138,14 @@ return {
         menu = {
           draw = {
             treesitter = { "lsp" },
+            columns = { { "label", "label_description", gap = 1 }, { "kind_icon" } },
           },
+          direction_priority = { "n", "s" },
         },
         documentation = {
+          window = { border = "rounded" },
           auto_show = true,
-          auto_show_delay_ms = 200,
+          auto_show_delay_ms = 500,
         },
         ghost_text = {
           enabled = vim.g.ai_cmp,
@@ -136,17 +153,118 @@ return {
       },
 
       -- experimental signature help support
-      -- signature = { enabled = true },
+      signature = {
+        enabled = true,
+        trigger = { show_on_trigger_character = false, show_on_insert_on_trigger_character = false },
+      },
 
       sources = {
         -- adding any nvim-cmp sources here will enable them
         -- with blink.compat
-        compat = {},
-        default = { "lsp", "path", "snippets", "buffer" },
+        default = { "snippets", "lsp", "path" },
+        providers = {
+          unicode = {
+            name = "Unicode",
+            module = "blink-cmp-latex",
+            opts = { insert_command = false },
+          },
+          latex = { name = "LaTeX", module = "blink-cmp-latex", opts = { insert_command = true } },
+          -- lsp = {
+          --   transform_items = function(_, items)
+          --     if items[1] then
+          --       vim.notify(vim.inspect(items[1]))
+          --     end
+          --     return items
+          --   end,
+          -- },
+          -- lsp = {
+          --   transform_items = function(_, items)
+          --     local Kind = require("blink.cmp.types").CompletionItemKind
+          --     local detail_to_kind = {
+          --       ["function"] = Kind.Function,
+          --       macro = Kind.Function,
+          --       type = Kind.Struct,
+          --       ["builtin type"] = Kind.Struct,
+          --       module = Kind.Module,
+          --       ["constant variable"] = Kind.Constant,
+          --     }
+          --     for _, item in ipairs(items) do
+          --       local desc = item.labelDetails and item.labelDetails.description
+          --       if desc == "global" or desc == "local" or desc == "argument" then
+          --         if type(item.detail) == "string" then
+          --           local tag = item.detail:lower():match("%[([^]]-)%]")
+          --           -- local tag = item.detail:lower():match("%a+")
+          --           -- vim.notify("tag: " .. (tag or "nil") .. " label: " .. (item.label or "nil"))
+          --           item.kind = detail_to_kind[tag] or Kind.Variable
+          --         else
+          --           item.kind = Kind.Variable
+          --         end
+          --       end
+          --     end
+          --     return items
+          --   end,
+          -- },
+          -- lsp = {
+          --   transform_items = function(ctx, items)
+          --     local Kind = require("blink.cmp.types").CompletionItemKind
+          --     local detail_to_kind = {
+          --       ["[function]"] = Kind.Function,
+          --       -- ["variable"] = Kind.Variable,
+          --       -- ["constant variable"] = Kind.Constant,
+          --       -- ["type"] = Kind.Class,
+          --       -- ["builtin type"] = Kind.Class,
+          --       -- ["module"] = Kind.Module,
+          --       -- ["keyword"] = Kind.Keyword,
+          --     }
+          --     for _, item in ipairs(items) do
+          --       local desc = item.labelDetails.description
+          --       if desc == "global" or desc == "local" or desc == "argument" then
+          --         local tag = item.detail --:lower():match('%a+')
+          --
+          --         vim.notify(tostring(tag))
+          --         -- vim.notify(vim.inspect(item))
+          --
+          --         if tag then
+          --           vim.notify(detail_to_kind[tag])
+          --           item.kind = detail_to_kind[tag] or item.kind
+          --         else
+          --           item.kind = Kind.Variable
+          --         end
+          --       end
+          --       --   local tag = item.detail:match("%[(%a+)%]")
+          --       --   vim.notify("tag: " .. (tag or "nil"))
+          --       --   if tag then
+          --       --     local mapped = detail_to_kind[tag:lower()]
+          --       --     if mapped then
+          --       --       item.kind = mapped
+          --       --     end
+          --       --   end
+          --       -- end
+          --     end
+          --     return items
+          --   end,
+          -- },
+          lsp = {
+            transform_items = function(ctx, items)
+              return vim.tbl_filter(function(item)
+                local desc = item.labelDetails and item.labelDetails.description
+                if desc == "emoji" or desc == "latex-symbol" then
+                  return false
+                end
+                return true
+              end, items)
+            end,
+          },
+        },
+        per_filetype = {
+          julia = { "unicode", "snippets", "lsp", "path" },
+          tex = { "latex", "snippets", "lsp", "path" },
+        },
       },
 
       cmdline = {
-        sources = {},
+        keymap = { preset = "inherit" },
+        sources = { "buffer", "cmdline" },
       },
 
       keymap = {
@@ -167,75 +285,75 @@ return {
           -- end,
           "fallback",
         },
-        ["<Tab>"] = { "fallback" },
+        ["<Tab>"] = { "snippet_forward", "fallback" },
         ["<S-Tab>"] = { "cancel", "hide" },
       },
     },
     ---@param opts blink.cmp.Config | { sources: { compat: string[] } }
-    config = function(_, opts)
-      local tvl_cmp = require("tvl.cmp")
-      -- setup compat sources
-      local enabled = opts.sources.default
-      for _, source in ipairs(opts.sources.compat or {}) do
-        opts.sources.providers[source] = vim.tbl_deep_extend(
-          "force",
-          { name = source, module = "blink.compat.source" },
-          opts.sources.providers[source] or {}
-        )
-        if type(enabled) == "table" and not vim.tbl_contains(enabled, source) then
-          table.insert(enabled, source)
-        end
-      end
-
-      -- add ai_accept to <Tab> key
-      if not opts.keymap["<Tab>"] then
-        if opts.keymap.preset == "super-tab" then -- super-tab
-          opts.keymap["<Tab>"] = {
-            require("blink.cmp.keymap.presets")["super-tab"]["<Tab>"][1],
-            tvl_cmp.map({ "snippet_forward", "ai_accept" }),
-            "fallback",
-          }
-        else -- other presets
-          opts.keymap["<Tab>"] = {
-            tvl_cmp.map({ "snippet_forward", "ai_accept" }),
-            "fallback",
-          }
-        end
-      end
-
-      -- Unset custom prop to pass blink.cmp validation
-      opts.sources.compat = nil
-
-      -- check if we need to override symbol kinds
-      for _, provider in pairs(opts.sources.providers or {}) do
-        ---@cast provider blink.cmp.SourceProviderConfig|{kind?:string}
-        if provider.kind then
-          local CompletionItemKind = require("blink.cmp.types").CompletionItemKind
-          local kind_idx = #CompletionItemKind + 1
-
-          CompletionItemKind[kind_idx] = provider.kind
-          ---@diagnostic disable-next-line: no-unknown
-          CompletionItemKind[provider.kind] = kind_idx
-
-          ---@type fun(ctx: blink.cmp.Context, items: blink.cmp.CompletionItem[]): blink.cmp.CompletionItem[]
-          local transform_items = provider.transform_items
-          ---@param ctx blink.cmp.Context
-          ---@param items blink.cmp.CompletionItem[]
-          provider.transform_items = function(ctx, items)
-            items = transform_items and transform_items(ctx, items) or items
-            for _, item in ipairs(items) do
-              item.kind = kind_idx or item.kind
-            end
-            return items
-          end
-
-          -- Unset custom prop to pass blink.cmp validation
-          provider.kind = nil
-        end
-      end
-
-      require("blink.cmp").setup(opts)
-    end,
+    -- config = function(_, opts)
+    --   local tvl_cmp = require("tvl.cmp")
+    --   -- setup compat sources
+    --   local enabled = opts.sources.default
+    --   for _, source in ipairs(opts.sources.compat or {}) do
+    --     opts.sources.providers[source] = vim.tbl_deep_extend(
+    --       "force",
+    --       { name = source, module = "blink.compat.source" },
+    --       opts.sources.providers[source] or {}
+    --     )
+    --     if type(enabled) == "table" and not vim.tbl_contains(enabled, source) then
+    --       table.insert(enabled, source)
+    --     end
+    --   end
+    --
+    --   -- -- add ai_accept to <Tab> key
+    --   -- if not opts.keymap["<Tab>"] then
+    --   --   if opts.keymap.preset == "super-tab" then -- super-tab
+    --   --     opts.keymap["<Tab>"] = {
+    --   --       require("blink.cmp.keymap.presets")["super-tab"]["<Tab>"][1],
+    --   --       tvl_cmp.map({ "snippet_forward", "ai_accept" }),
+    --   --       "fallback",
+    --   --     }
+    --   --   else -- other presets
+    --   --     opts.keymap["<Tab>"] = {
+    --   --       tvl_cmp.map({ "snippet_forward", "ai_accept" }),
+    --   --       "fallback",
+    --   --     }
+    --   --   end
+    --   -- end
+    --
+    --   -- Unset custom prop to pass blink.cmp validation
+    --   opts.sources.compat = nil
+    --
+    --   -- check if we need to override symbol kinds
+    --   -- for _, provider in pairs(opts.sources.providers or {}) do
+    --   --   ---@cast provider blink.cmp.SourceProviderConfig|{kind?:string}
+    --   --   if provider.kind then
+    --   --     local CompletionItemKind = require("blink.cmp.types").CompletionItemKind
+    --   --     local kind_idx = #CompletionItemKind + 1
+    --   --
+    --   --     CompletionItemKind[kind_idx] = provider.kind
+    --   --     ---@diagnostic disable-next-line: no-unknown
+    --   --     CompletionItemKind[provider.kind] = kind_idx
+    --   --
+    --   --     ---@type fun(ctx: blink.cmp.Context, items: blink.cmp.CompletionItem[]): blink.cmp.CompletionItem[]
+    --   --     local transform_items = provider.transform_items
+    --   --     ---@param ctx blink.cmp.Context
+    --   --     ---@param items blink.cmp.CompletionItem[]
+    --   --     provider.transform_items = function(ctx, items)
+    --   --       items = transform_items and transform_items(ctx, items) or items
+    --   --       for _, item in ipairs(items) do
+    --   --         item.kind = kind_idx or item.kind
+    --   --       end
+    --   --       return items
+    --   --     end
+    --   --
+    --   --     -- Unset custom prop to pass blink.cmp validation
+    --   --     provider.kind = nil
+    --   --   end
+    --   -- end
+    --
+    --   require("blink.cmp").setup(opts)
+    -- end,
   },
   {
     "hrsh7th/nvim-cmp",
@@ -328,27 +446,64 @@ return {
   },
 
   -- comments
-  { "JoosepAlviste/nvim-ts-context-commentstring", lazy = true },
+  {
+    "JoosepAlviste/nvim-ts-context-commentstring",
+    lazy = true,
+    opts = {
+      enable_autocmd = false,
+      languages = {
+        julia = "# %s",
+      },
+    },
+  },
   {
     "echasnovski/mini.comment",
     event = "VeryLazy",
     opts = {
-      hooks = {
-        pre = function()
-          require("ts_context_commentstring.internal").update_commentstring({})
+      options = {
+        custom_commentstring = function()
+          return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
         end,
       },
     },
-    config = function(_, opts)
-      require("mini.comment").setup(opts)
-    end,
   },
-
+  {
+    "brendon-felix/divide.nvim",
+    event = "VeryLazy",
+    keys = {
+      {
+        "<leader>D",
+        function()
+          require("divide").subheader()
+        end,
+        desc = "Insert divider",
+      },
+    },
+    opts = {
+      width = 92,
+      char = "=",
+      languages = {
+        julia = {
+          line_start = "#",
+          line_end = "#",
+        },
+      },
+    },
+  },
   {
     "glepnir/lspsaga.nvim",
-    lazy = true,
-    config = function()
-      require("lspsaga").setup({})
+    event = "LspAttach",
+    keys = {
+      { "K", "<cmd>Lspsaga hover_doc<CR>", desc = "Hover documentation" },
+    },
+    init = function(_, opts)
+      require("lspsaga").setup({
+        lightbulb = {
+          enable = true,
+          sign = false,
+          virtual_text = true,
+        },
+      })
     end,
   },
   {
@@ -452,30 +607,43 @@ return {
     end,
   },
   {
-    "kylechui/nvim-surround",
+    "nvim-mini/mini.surround",
     version = "*",
-    event = "VeryLazy",
-    opts = {
-      keymaps = {
-        insert = "<C-g>z",
-        insert_line = "<C-g>Z",
-        normal = "gz",
-        normal_cur = "gZ",
-        normal_line = "gzz",
-        normal_cur_line = "gZZ",
-        visual = "gz",
-        visual_line = "gZ",
-        delete = "gzd",
-        replace = "gzr",
-      },
-    },
-    keys = {
-      { "gz", desc = "Surround a motion" },
-      { "gzz", desc = "Surround line" },
-      { "gzd", desc = "Delete surrounding pair" },
-      { "gzr", desc = "Replace surrounding pair" },
-    },
+    config = true,
   },
+  { "nvim-mini/mini.operators", version = "*", config = true },
+  -- {
+  --   "kylechui/nvim-surround",
+  --   version = "*",
+  --   event = "VeryLazy",
+  --   -- opts = {
+  --   --   keymaps = {
+  --   --     insert = "<C-g>z",
+  --   --     insert_line = "<C-g>Z",
+  --   --     normal = "gz",
+  --   --     normal_cur = "gZ",
+  --   --     normal_line = "gzz",
+  --   --     normal_cur_line = "gZZ",
+  --   --     visual = "gz",
+  --   --     visual_line = "gZ",
+  --   --     delete = "gzd",
+  --   --     replace = "gzr",
+  --   --   },
+  --   -- },
+  --   keys = {
+  --     { "<C-g>z", "<Plug>(nvim-surround-insert)", desc = "Surround", mode = { "i" } },
+  --     { "<C-g>Z", "<Plug>(nvim-surround-insert-line)", desc = "Surround (new lines)", mode = { "i" } },
+  --     { "yz", "<Plug>(nvim-surround-normal)", desc = "Surround", mode = { "n" } },
+  --     { "yzz", "<Plug>(nvim-surround-normal-cur)", desc = "Surround line", mode = { "n" } },
+  --     { "yZ", "<Plug>(nvim-surround-normal-line)", desc = "Surround (new lines)", mode = { "n" } },
+  --     { "yZZ", "<Plug>(nvim-surround-normal-cur-line)", desc = "Surround line (new lines)", mode = { "n" } },
+  --     { "Z", "<Plug>(nvim-surround-visual)", desc = "Surround", mode = { "x" } },
+  --     { "gZ", "<Plug>(nvim-surround-visual-line)", desc = "Surround (new lines)", mode = { "x" } },
+  --     { "dz", "<Plug>(nvim-surround-delete)", desc = "Delete surround", mode = { "n" } },
+  --     { "cz", "<Plug>(nvim-surround-change)", desc = "Change surround", mode = { "n" } },
+  --     { "cZ", "<Plug>(nvim-surround-change-line)", desc = "Change surround (new lines)", mode = { "n" } },
+  --   },
+  -- },
   {
     "lervag/vimtex",
     lazy = false, -- we don't want to lazy load VimTeX
@@ -493,5 +661,37 @@ return {
         },
       }
     end,
+  },
+  {
+    "zbirenbaum/copilot.lua",
+    event = "InsertEnter",
+    dependencies = {
+      "copilotlsp-nvim/copilot-lsp",
+    },
+    requires = {
+      "copilotlsp-nvim/copilot-lsp",
+    },
+    opts = {
+      suggestion = {
+        auto_trigger = true,
+        keymap = {
+          accept = "<Aq-j>",
+          accept_line = "<C-;>",
+          accept_word = "<C-l>",
+          next = "<A-]>",
+          prev = "<A-[>",
+          dismiss = "<A-c>",
+        },
+      },
+      nes = {
+        enabled = false, -- requires copilot-lsp as a dependency
+        auto_trigger = true,
+        keymap = {
+          accept_and_goto = false,
+          accept = "<C-]>",
+          dismiss = false,
+        },
+      },
+    },
   },
 }

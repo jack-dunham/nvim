@@ -1,6 +1,11 @@
 vim.g.diagnostics_enabled = true
 
-local diagnostics = {
+local icons = require("tvl.core.icons").diagnostics
+local severity = vim.diagnostic.severity
+
+local M = {}
+
+M.diagnostics = {
   off = {
     underline = true,
     virtual_text = false,
@@ -28,14 +33,30 @@ local diagnostics = {
   },
 }
 
+M.signs = {
+  text = {},
+  linehl = {},
+  numhl = {
+    [severity.ERROR] = "DiagnosticSignError",
+    [severity.WARN] = "DiagnosticSignWarn",
+    [severity.HINT] = "DiagnosticSignHint",
+    [severity.INFO] = "DiagnosticSignInfo",
+  },
+}
+
+for name, icon in pairs(icons) do
+  M.signs.text[severity[name]] = icon
+  M.signs.linehl[severity[name]] = ""
+end
+
 vim.api.nvim_create_user_command("ToggleDiagnostic", function()
   if vim.g.diagnostics_enabled then
-    vim.diagnostic.config(diagnostics["off"])
+    vim.diagnostic.config(M.diagnostics["off"])
     vim.g.diagnostics_enabled = false
   else
-    vim.diagnostic.config(diagnostics["on"])
+    vim.diagnostic.config(M.diagnostics["on"])
     vim.g.diagnostics_enabled = true
   end
 end, { nargs = 0 })
 
-return diagnostics
+return M

@@ -12,8 +12,10 @@ return {
       bufdelete = { enabled = true },
       dashboard = { enabled = true },
       dim = { enabled = true },
-      explorer = { enabled = true },
+      explorer = { enabled = true, replace_netrw = false },
+      gh = { enabled = true },
       git = { enabled = true },
+      image = { enabled = true },
       indent = { enabled = true },
       input = { enabled = true },
       lazygit = { enabled = true },
@@ -21,7 +23,25 @@ return {
       picker = { enabled = true },
       quickfile = { enabled = true },
       scope = { enabled = true },
-      scratch = { enabled = true },
+      scratch = {
+        enabled = true,
+        win_by_ft = {
+          julia = {
+            keys = {
+              ["source"] = {
+                "<cr>",
+                function()
+                  local core = require("iron.core")
+                  core.send_file()
+                  Snacks.scratch.open()
+                end,
+                desc = "Source buffer",
+                mode = { "n", "x" },
+              },
+            },
+          },
+        },
+      },
       statuscolumn = { enabled = true },
       terminal = { enabled = true },
       toggle = { enabled = true },
@@ -34,7 +54,7 @@ return {
       { "<leader>/", function() Snacks.picker.grep() end, desc = "Grep" },
       { "<leader>:", function() Snacks.picker.command_history() end, desc = "Command History" },
       { "<leader>n", function() Snacks.picker.notifications() end, desc = "Notification History" },
-      { "<leader>e", function() Snacks.explorer() end, desc = "File Explorer" },
+      { "<leader>e", function() Snacks.explorer() end, desc = "Toggle File Tree" },
       -- find
       { "<leader>fb", function() Snacks.picker.buffers() end, desc = "Buffers" },
       { "<leader>fc", function() Snacks.picker.files({ cwd = vim.fn.stdpath("config") }) end, desc = "Find Config File" },
@@ -50,6 +70,11 @@ return {
       { "<leader>gS", function() Snacks.picker.git_stash() end, desc = "Git Stash" },
       { "<leader>gd", function() Snacks.picker.git_diff() end, desc = "Git Diff (Hunks)" },
       { "<leader>gf", function() Snacks.picker.git_log_file() end, desc = "Git Log File" },
+        -- gh
+      { "<leader>ghi", function() Snacks.picker.gh_issue() end, desc = "GitHub Issues (open)" },
+      { "<leader>ghI", function() Snacks.picker.gh_issue({ state = "all" }) end, desc = "GitHub Issues (all)" },
+      { "<leader>ghp", function() Snacks.picker.gh_pr() end, desc = "GitHub Pull Requests (open)" },
+      { "<leader>ghP", function() Snacks.picker.gh_pr({ state = "all" }) end, desc = "GitHub Pull Requests (all)" },
       -- Grep
       { "<leader>sb", function() Snacks.picker.lines() end, desc = "Buffer Lines" },
       { "<leader>sB", function() Snacks.picker.grep_buffers() end, desc = "Grep Open Buffers" },
@@ -96,9 +121,9 @@ return {
       { "<leader>gB", function() Snacks.gitbrowse() end, desc = "Git Browse", mode = { "n", "v" } },
       { "<leader>gg", function() Snacks.lazygit() end, desc = "Lazygit" },
       { "<leader>un", function() Snacks.notifier.hide() end, desc = "Dismiss All Notifications" },
-      { "<c-\\>",      function() Snacks.terminal() end, desc = "Toggle Terminal" },
-      { "]]",         function() Snacks.words.jump(vim.v.count1) end, desc = "Next Reference", mode = { "n", "t" } },
-      { "[[",         function() Snacks.words.jump(-vim.v.count1) end, desc = "Prev Reference", mode = { "n", "t" } },
+      -- { "<c-\\>",      function() Snacks.terminal() end, desc = "Toggle Terminal" },
+      { "]]",         function() Snacks.words.jump(vim.v.count1) end, desc = "Next Reference", mode = { "n"} },
+      { "[[",         function() Snacks.words.jump(-vim.v.count1) end, desc = "Prev Reference", mode = { "n" } },
       -- stylua: ignore end
     },
   },
