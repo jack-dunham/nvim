@@ -392,6 +392,7 @@ return {
   },
   {
     "coder/claudecode.nvim",
+    enabled = false,
     dependencies = { "folke/snacks.nvim" },
     opts = {
       terminal = {
@@ -439,6 +440,7 @@ return {
       { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
     },
   },
+  { "ChmaraX/herdr-nvim", opts = {} },
   {
     "folke/sidekick.nvim",
     enabled = false,
